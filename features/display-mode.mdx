@@ -1,0 +1,444 @@
+---
+title: Display Mode
+description: Full-screen advertising display with animations, transitions, and dynamic content
+icon: monitor-play
+---
+
+## Overview
+
+Display Mode transforms your selected products and announcements into professional, full-screen advertising displays with smooth animations, theme-aware styling, and attention-grabbing visual effects. Perfect for in-store digital signage and promotional screens.
+
+## Display Architecture
+
+The display system cycles through items with configurable timing:
+
+```typescript
+interface AdDisplayProps {
+  items: (Product | Announcement)[]; // Mixed content array
+  store: Store;                      // Current store location
+  duration: number;                  // Seconds per item
+  onExit: () => void;                // Exit callback
+}
+```
+
+## Auto-Rotation System
+
+Displays automatically cycle through your playlist:
+
+```tsx
+const nextSlide = useCallback(() => {
+  setShowContent(false);
+  setTimeout(() => {
+    setCurrentIndex((prev) => (prev + 1) % items.length);
+    setProgress(0);
+    setShowContent(true);
+  }, 500);
+}, [items.length]);
+
+useEffect(() => {
+  if (items.length <= 1) return;
+
+  const interval = 100;
+  const totalSteps = (duration * 1000) / interval;
+  
+  const timer = setInterval(() => {
+    setProgress((prev) => {
+      if (prev >= 100) {
+        nextSlide();
+        return 0;
+      }
+      return prev + (100 / totalSteps);
+    });
+  }, interval);
+
+  return () => clearInterval(timer);
+}, [duration, items.length, nextSlide]);
+```
+
+<Note>
+The rotation system includes a 500ms fade transition between items for smooth visual flow.
+</Note>
+
+## Product Display Layout
+
+Product displays feature a dual-column layout optimized for retail screens:
+
+```tsx
+<div className="w-100dvh max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-10 xl:gap-24">
+  {/* Image Container */}
+  <div className="relative flex-shrink-0">
+    <div className="w-72 h-72 md:w-[28rem] md:h-[28rem] xl:w-[32rem] xl:h-[32rem] rounded-[3.5rem] overflow-hidden">
+      <img 
+        src={product.imageUrl || `https://picsum.photos/seed/${product.id}/1200`} 
+        className="w-full h-full object-cover animate-softZoom"
+      />
+      
+      {product.isPromotion && (
+        <div className="absolute top-6 left-6 text-white font-bebas text-4xl xl:text-5xl px-8 py-3 rounded-[1.5rem] shadow-2xl">
+          {getPromoLabel(product.promotionType)}
+        </div>
+      )}
+    </div>
+  </div>
+
+  {/* Content Side */}
+  <div className="flex flex-col space-y-8 text-white">
+    <h1 className="text-7xl md:text-7xl xl:text-[6rem] font-bebas">
+      {product.name}
+    </h1>
+    
+    {product.slogan && (
+      <p className="text-3xl xl:text-4xl font-black italic">
+        "{product.slogan}"
+      </p>
+    )}
+    
+    <div className="flex items-baseline">
+      <span className="text-[10rem] xl:text-[12rem] font-bebas">
+        ${product.price.toLocaleString()}
+      </span>
+      <span className="text-3xl xl:text-4xl font-black">/ {product.unit}</span>
+    </div>
+  </div>
+</div>
+```
+
+### Product Display Features
+
+<CardGroup cols={2}>
+  <Card title="Image Showcase" icon="image">
+    Large product image with soft zoom animation and dynamic color backdrop
+  </Card>
+  <Card title="Promotion Badges" icon="badge-percent">
+    Animated badges for daily, weekly, or general promotions
+  </Card>
+  <Card title="Dynamic Pricing" icon="dollar-sign">
+    Massive price display with theme-colored currency symbol
+  </Card>
+  <Card title="Location Info" icon="map-pin">
+    Store address prominently displayed with directional icon
+  </Card>
+</CardGroup>
+
+## Announcement Display Layout
+
+Announcements use a centered, content-focused layout:
+
+```tsx
+<div 
+  className="w-full max-w-6xl h-fit p-16 md:p-24 rounded-[4rem]"
+  style={{ backgroundColor: `${announcement.backgroundColor}DD` }}
+>
+  <div className="flex flex-col items-center justify-center">
+    {announcement.hasAnimation && (
+      <div className="absolute inset-0 bg-white/5 opacity-10 shine-effect"></div>
+    )}
+    
+    <div className="mb-12 inline-flex items-center gap-6">
+      <Megaphone className="text-white animate-bounce" size={40} />
+      <span className="text-2xl font-black text-white">
+        {store.name}
+      </span>
+    </div>
+
+    <div 
+      className={`${announcement.fontFamily} leading-[1.05]`}
+      style={{ 
+        fontSize: `${announcement.fontSize}px`, 
+        color: announcement.textColor,
+        textAlign: announcement.textAlign
+      }}
+    >
+      {announcement.message}
+    </div>
+  </div>
+</div>
+```
+
+## Visual Effects & Animations
+
+### Background Gradients
+
+Dynamic color blobs that pulse and shift based on theme color:
+
+```tsx
+<div className="absolute top-0 left-0 w-full h-full opacity-30">
+  <div 
+    className="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] blur-[200px] rounded-full animate-pulse"
+    style={{ backgroundColor: themeColor }}
+  ></div>
+  <div 
+    className="absolute bottom-[-15%] right-[-10%] w-[35%] h-[35%] blur-[160px] rounded-full animate-pulse opacity-60"
+    style={{ backgroundColor: themeColor, animationDelay: '1.5s' }}
+  ></div>
+</div>
+```
+
+### Soft Zoom Animation
+
+Subtle image scaling for visual interest:
+
+```css
+@keyframes softZoom { 
+  0%, 100% { transform: scale(1); } 
+  50% { transform: scale(1.08); } 
+}
+.animate-softZoom { 
+  animation: softZoom 15s ease-in-out infinite; 
+}
+```
+
+### Shine Effect
+
+Optional shimmer animation for announcements:
+
+```tsx
+{announcement.hasAnimation && (
+  <div className="absolute inset-0 bg-white/5 opacity-20 shine-effect"></div>
+)}
+```
+
+## Ticker System
+
+Continuous scrolling ticker at the bottom displays dynamic messages:
+
+```tsx
+const tickerMessages = useMemo(() => {
+  if (isProduct && product) {
+    const messages = [
+      product.name.toUpperCase(),
+      "CALIDAD GARANTIZADA",
+      "DISPONIBLE AHORA",
+      store.name.toUpperCase()
+    ];
+    if (product.isPromotion) {
+      messages.push("¡OFERTA LIMITADA!");
+      messages.push(`MEJOR PRECIO: $${product.price.toLocaleString()}`);
+    }
+    return messages;
+  } else if (announcement) {
+    return [
+      announcement.title.toUpperCase(),
+      "AVISO IMPORTANTE",
+      store.name.toUpperCase(),
+      "¡GRACIAS POR SU VISITA!"
+    ];
+  }
+  return [];
+}, [currentItem, store.name]);
+```
+
+```tsx
+<div className="absolute bottom-4 left-0 w-full bg-black/40 backdrop-blur-md py-4 overflow-hidden">
+  <div className="flex animate-marquee space-x-20 px-10">
+    {[...Array(6)].map((_, i) => (
+      <React.Fragment key={i}>
+        {tickerMessages.map((msg, idx) => (
+          <span 
+            key={`${i}-${idx}`} 
+            className="font-bebas text-3xl xl:text-4xl"
+            style={{ color: idx % 2 !== 0 ? themeColor : undefined }}
+          >
+            {msg}
+            <div className="w-2 h-2 rounded-full bg-white/20"></div>
+          </span>
+        ))}
+      </React.Fragment>
+    ))}
+  </div>
+</div>
+```
+
+```css
+@keyframes marquee { 
+  0% { transform: translateX(0); } 
+  100% { transform: translateX(-50%); } 
+}
+.animate-marquee { 
+  display: flex; 
+  width: fit-content; 
+  animation: marquee 35s linear infinite; 
+}
+```
+
+<Tip>
+Ticker messages are dynamically generated based on the current item type and promotion status.
+</Tip>
+
+## Progress Bar
+
+Visual indicator showing time remaining for current item:
+
+```tsx
+{items.length > 1 && (
+  <div className="absolute top-0 left-0 w-full h-1.5 bg-white/5">
+    <div 
+      className="h-full transition-all duration-100 ease-linear"
+      style={{ 
+        width: `${progress}%`, 
+        backgroundColor: themeColor 
+      }}
+    ></div>
+  </div>
+)}
+```
+
+## Slide Indicators
+
+Interactive dots showing position in playlist:
+
+```tsx
+{items.length > 1 && (
+  <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-3">
+    {items.map((_, i) => (
+      <div 
+        key={i} 
+        className={`h-2 transition-all duration-700 rounded-full cursor-pointer ${
+          i === currentIndex ? 'w-12 bg-white' : 'w-2 bg-white/10'
+        }`}
+        style={{ backgroundColor: i === currentIndex ? themeColor : undefined }}
+        onClick={() => {
+          setCurrentIndex(i);
+          setProgress(0);
+          setShowContent(false);
+          setTimeout(() => setShowContent(true), 100);
+        }}
+      ></div>
+    ))}
+  </div>
+)}
+```
+
+<Note>
+Users can click indicators to jump directly to specific items in the playlist.
+</Note>
+
+## Theme Color System
+
+Each display adapts to product or announcement colors:
+
+```tsx
+const themeColor = product 
+  ? (product.primaryColor || '#4f46e5') 
+  : (announcement?.backgroundColor || '#1e293b');
+```
+
+The theme color affects:
+- Background gradient blobs
+- Progress bar color
+- Currency symbol color
+- Ticker text highlights
+- Slide indicator active state
+- Promotion badge backgrounds
+- Store badge backgrounds
+
+## Promotion Labels
+
+Dynamic badge text based on promotion type:
+
+```tsx
+const getPromoLabel = (type?: string) => {
+  switch (type) {
+    case 'dia': return '¡OFERTA DEL DÍA!';
+    case 'semana': return '¡OFERTA DE LA SEMANA!';
+    case 'general':
+    default: return '¡OFERTA IMPERDIBLE!';
+  }
+};
+```
+
+<Tabs>
+  <Tab title="Daily Deal">
+    `¡OFERTA DEL DÍA!` - Creates urgency with time-limited appeal
+  </Tab>
+  <Tab title="Weekly Special">
+    `¡OFERTA DE LA SEMANA!` - Encourages repeat visits throughout the week
+  </Tab>
+  <Tab title="General Offer">
+    `¡OFERTA IMPERDIBLE!` - Generic promotion badge for ongoing deals
+  </Tab>
+</Tabs>
+
+## Exit Controls
+
+Always-visible exit button in top-right corner:
+
+```tsx
+<div className="absolute top-6 right-6 z-[160]">
+  <button 
+    onClick={onExit} 
+    className="p-4 bg-rose-600/80 hover:bg-rose-500 rounded-xl backdrop-blur-md active:scale-90"
+  >
+    <X size={24} className="group-hover:rotate-90 transition-transform" />
+  </button>
+</div>
+```
+
+<Warning>
+The exit button is always accessible regardless of which item is currently displaying.
+</Warning>
+
+## Duration Controls
+
+Display duration is configurable before launching:
+
+```tsx
+<div className="flex items-center gap-2">
+  <Clock size={16} />
+  <span className="text-xs font-bold">Segundos</span>
+  <input 
+    type="number" 
+    min="1" 
+    value={duration}
+    onChange={(e) => setDuration(Math.max(1, parseInt(e.target.value) || 1))}
+  />
+</div>
+```
+
+Recommended durations:
+- **3-5 seconds**: Fast-paced, high-traffic areas
+- **7-10 seconds**: Standard retail display
+- **15+ seconds**: Detailed products or longer announcements
+
+## Performance Optimizations
+
+<Accordion title="Memoized Ticker Messages">
+Ticker content is memoized to prevent unnecessary recalculations:
+
+```tsx
+const tickerMessages = useMemo(() => {
+  // Calculate messages
+}, [currentItem, store.name, isProduct, product, announcement]);
+```
+</Accordion>
+
+<Accordion title="Callback Stability">
+The nextSlide function uses useCallback for stable references:
+
+```tsx
+const nextSlide = useCallback(() => {
+  // Transition logic
+}, [items.length]);
+```
+</Accordion>
+
+<Accordion title="Image Preloading">
+Images are loaded from URLs or base64 data, with fallback to placeholder images if unavailable.
+</Accordion>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Optimal Duration" icon="clock">
+    Use 7-10 seconds per item for most retail environments
+  </Card>
+  <Card title="Playlist Balance" icon="list">
+    Mix products and announcements for variety and information balance
+  </Card>
+  <Card title="Screen Testing" icon="monitor">
+    Test displays on actual screens before deployment to check visibility
+  </Card>
+  <Card title="Strategic Placement" icon="map-pin">
+    Position screens in high-traffic areas with good viewing angles
+  </Card>
+</CardGroup>

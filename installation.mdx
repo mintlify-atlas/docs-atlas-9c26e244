@@ -1,0 +1,280 @@
+---
+title: "Installation"
+description: "Install and set up PromoMaster Pro in your development environment with npm, yarn, or pnpm."
+---
+
+# Installation
+
+PromoMaster Pro is built with Vite and React, making it fast and easy to set up in your development environment. This guide will walk you through installing dependencies, configuring the application, and getting it running locally.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** version 16.x or higher
+- **npm**, **yarn**, or **pnpm** package manager
+- A modern web browser (Chrome, Firefox, Safari, or Edge)
+
+<Note>
+PromoMaster Pro uses React 19 and TypeScript 5.8, so make sure your Node.js version supports these dependencies.
+</Note>
+
+## Install Dependencies
+
+Clone the repository and install the required packages using your preferred package manager:
+
+<CodeGroup>
+```bash npm
+npm install
+```
+
+```bash yarn
+yarn install
+```
+
+```bash pnpm
+pnpm install
+```
+</CodeGroup>
+
+### What Gets Installed
+
+PromoMaster Pro includes these key dependencies:
+
+**Core Dependencies:**
+- `react@^19.2.3` - React framework for building the UI
+- `react-dom@^19.2.3` - React DOM rendering
+- `@google/genai@^1.35.0` - Google Generative AI for content creation
+- `lucide-react@^0.562.0` - Beautiful icon library
+
+**Development Dependencies:**
+- `typescript@~5.8.2` - Type-safe JavaScript
+- `vite@^6.2.0` - Lightning-fast build tool
+- `@vitejs/plugin-react@^5.0.0` - React plugin for Vite
+- `@types/node@^22.14.0` - Node.js type definitions
+
+## Development Server
+
+Start the development server with hot module replacement:
+
+<CodeGroup>
+```bash npm
+npm run dev
+```
+
+```bash yarn
+yarn dev
+```
+
+```bash pnpm
+pnpm dev
+```
+</CodeGroup>
+
+The application will start on `http://localhost:5173` by default. The dev server includes:
+- **Hot Module Replacement (HMR)** - Changes appear instantly without page refresh
+- **Fast Refresh** - Preserves component state during edits
+- **TypeScript checking** - Real-time type error detection
+
+<Tip>
+Vite's dev server typically starts in under 1 second, even on large codebases. If you see a different port, Vite automatically found an available one.
+</Tip>
+
+## Build for Production
+
+Create an optimized production build:
+
+<CodeGroup>
+```bash npm
+npm run build
+```
+
+```bash yarn
+yarn build
+```
+
+```bash pnpm
+pnpm build
+```
+</CodeGroup>
+
+This command:
+1. Runs TypeScript type checking
+2. Compiles and bundles your application
+3. Optimizes assets for production
+4. Outputs files to the `dist/` directory
+
+The production build is optimized for:
+- **Minimal bundle size** - Tree-shaking removes unused code
+- **Fast loading** - Code splitting and lazy loading
+- **Browser compatibility** - Transpiled for broad support
+
+## Preview Production Build
+
+Test your production build locally before deployment:
+
+<CodeGroup>
+```bash npm
+npm run preview
+```
+
+```bash yarn
+yarn preview
+```
+
+```bash pnpm
+pnpm preview
+```
+</CodeGroup>
+
+This serves the built application from the `dist/` directory, allowing you to verify the production build works correctly.
+
+## Environment Configuration
+
+### AI Features Setup
+
+To enable AI-powered content generation, you'll need a Google Generative AI API key:
+
+<Steps>
+  <Step title="Get Your API Key">
+    1. Visit the [Google AI Studio](https://makersuite.google.com/app/apikey)
+    2. Sign in with your Google account
+    3. Create a new API key
+    4. Copy the key for the next step
+  </Step>
+
+  <Step title="Configure the Application">
+    The application expects the API key to be configured in the source code. Locate the AI integration code in your component files and add your API key:
+
+    ```typescript
+    import { GoogleGenerativeAI } from '@google/genai';
+
+    // Initialize the AI client with your API key
+    const genAI = new GoogleGenerativeAI('YOUR_API_KEY_HERE');
+    ```
+
+    <Warning>
+    Never commit API keys to version control. For production deployments, use environment variables:
+    
+    ```typescript
+    const genAI = new GoogleGenerativeAI(
+      import.meta.env.VITE_GOOGLE_AI_API_KEY
+    );
+    ```
+    
+    Then create a `.env` file:
+    ```bash
+    VITE_GOOGLE_AI_API_KEY=your_api_key_here
+    ```
+    </Warning>
+  </Step>
+
+  <Step title="Test AI Features">
+    Once configured, the AI features will be available for:
+    - Generating product descriptions
+    - Creating marketing slogans
+    - Suggesting category names
+    - Writing announcement copy
+  </Step>
+</Steps>
+
+### Local Storage Configuration
+
+PromoMaster Pro uses browser local storage for data persistence. The storage key is defined in the App component:
+
+```typescript
+const STORAGE_KEY = 'promomaster_data_v2';
+```
+
+All application state (stores, products, announcements, and sequences) is automatically saved to local storage whenever it changes:
+
+```typescript
+useEffect(() => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}, [state]);
+```
+
+<Note>
+**Storage Limits**: Browsers typically provide 5-10MB of local storage. PromoMaster Pro's data structure is efficient, but if you have hundreds of products with large images, consider using image URLs instead of embedded data.
+</Note>
+
+## Project Structure
+
+After installation, your project structure will look like this:
+
+```
+promomaster-pro/
+├── src/
+│   ├── App.tsx                 # Main application component
+│   ├── types.ts                # TypeScript type definitions
+│   ├── components/
+│   │   ├── Dashboard.tsx       # Display sequence builder
+│   │   ├── Management.tsx      # Store/product management
+│   │   └── AdDisplay.tsx       # Fullscreen display mode
+│   └── main.tsx               # Application entry point
+├── package.json               # Dependencies and scripts
+├── tsconfig.json             # TypeScript configuration
+├── vite.config.ts            # Vite build configuration
+└── index.html                # HTML entry point
+```
+
+## Troubleshooting
+
+### Port Already in Use
+
+If port 5173 is already in use, Vite will automatically try the next available port. You can specify a custom port:
+
+```bash
+npm run dev -- --port 3000
+```
+
+### TypeScript Errors
+
+If you see TypeScript errors during build:
+
+1. Ensure you're using TypeScript 5.8+: `npm list typescript`
+2. Clear your node_modules and reinstall: `rm -rf node_modules && npm install`
+3. Check for type mismatches in the types.ts file
+
+### Local Storage Issues
+
+If data isn't persisting between sessions:
+
+1. Check browser console for storage errors
+2. Verify local storage isn't disabled in browser settings
+3. Clear application data and restart: Open DevTools > Application > Local Storage > Clear
+
+### AI Features Not Working
+
+<Warning>
+Common AI integration issues:
+- **Invalid API Key**: Verify your Google AI API key is correct
+- **Quota Exceeded**: Check your Google Cloud usage quotas
+- **Network Errors**: Ensure your network allows connections to Google AI endpoints
+</Warning>
+
+## Next Steps
+
+Now that PromoMaster Pro is installed:
+
+<CardGroup cols={2}>
+  <Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+    Create your first store and display sequence
+  </Card>
+  
+  <Card title="Type Definitions" icon="code" href="/api/types/store">
+    Explore the TypeScript interfaces and types
+  </Card>
+  
+  <Card title="Product Management" icon="box" href="/features/product-management">
+    Learn how to manage your product catalog
+  </Card>
+  
+  <Card title="AI Features" icon="sparkles" href="/ai/setup">
+    Set up AI-powered content generation
+  </Card>
+</CardGroup>
+
+<Tip>
+Join our community for help, updates, and best practices. Share your PromoMaster Pro displays with other retailers!
+</Tip>

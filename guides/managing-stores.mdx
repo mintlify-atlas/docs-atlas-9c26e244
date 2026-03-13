@@ -1,0 +1,137 @@
+---
+title: "Managing Stores"
+description: "Configure and manage your store locations in PromoMaster Pro"
+---
+
+## Overview
+
+Store management in PromoMaster Pro allows you to configure multiple retail locations, each with its own advertising displays. This is essential for businesses with multiple branches or departments.
+
+## Adding a New Store
+
+<Steps>
+  <Step title="Navigate to Stores Tab">
+    From the Advanced Configuration page, click on the **Stores** tab (Sucursales).
+  </Step>
+
+  <Step title="Enter Store Name">
+    In the "New Store" form, enter a unique name for your store location. This name will appear on advertising displays.
+
+    <Tip>Use clear, recognizable names like "Downtown Branch" or "North Location" rather than codes or abbreviations.</Tip>
+  </Step>
+
+  <Step title="Add Store Address">
+    Enter the complete address for the store. This information appears on product displays to help customers find your location.
+
+    ```text
+    Example: 123 Main Street, Shopping District
+    ```
+  </Step>
+
+  <Step title="Save the Store">
+    Click **Save Store** (Guardar Local) to add the location to your system. The store will immediately be available for use in ad sequences.
+  </Step>
+</Steps>
+
+## Understanding Store Fields
+
+### Store Name
+The store name serves as the primary identifier and appears prominently on all advertising displays for that location. Choose names that customers will recognize instantly.
+
+### Store Address
+The address is displayed on product advertisements, helping customers locate the store offering the promoted items. Include enough detail for customers to find you easily.
+
+### Logo Color
+Each store is assigned a color that appears in the store identifier badge. While this is automatically assigned, it helps visually distinguish between different locations in the management interface.
+
+## Editing Store Information
+
+To update store details:
+
+1. Locate the store in the stores list
+2. Click the **edit icon** (pencil) next to the store name
+3. Modify the information in the form
+4. The form changes from "New Store" to "Edit Store"
+5. Click **Save Store** to update
+
+## Deleting a Store
+
+Click the trash icon next to any store to remove it from your system.
+
+<Warning>Deleting a store will affect any active ad sequences assigned to that location.</Warning>
+
+## Multi-Store Scenarios
+
+### Chain Stores
+
+For retail chains with multiple identical locations:
+
+<Steps>
+  <Step title="Create Location-Specific Stores">
+    Add each physical location as a separate store with its unique address.
+  </Step>
+  
+  <Step title="Use Consistent Naming">
+    Follow a naming convention like:
+    - "[Brand] - Downtown"
+    - "[Brand] - Mall Location"
+    - "[Brand] - Airport Terminal"
+  </Step>
+  
+  <Step title="Share Product Catalogs">
+    Products are shared across all stores, but you can create location-specific ad sequences to highlight different items at different locations.
+  </Step>
+</Steps>
+
+### Department Stores
+
+For locations with multiple departments:
+
+<CardGroup cols={2}>
+  <Card title="Single Store Approach" icon="building">
+    Create one store for the entire location and use product categories to organize departments.
+  </Card>
+  <Card title="Multi-Store Approach" icon="grid">
+    Create separate "stores" for each department (Grocery, Meat, Produce) if they need independent displays.
+  </Card>
+</CardGroup>
+
+## Store Selection in Dashboard
+
+When creating ad sequences, you'll select which store will display the content. This is found in the Dashboard's store selector dropdown.
+
+<Note>You must have at least one store configured before you can launch any advertising displays.</Note>
+
+## Best Practices
+
+<Accordion title="Naming Conventions">
+  Use consistent, descriptive names:
+  - Include geographic identifiers (North, South, Downtown)
+  - Keep names concise but clear
+  - Avoid special characters that might not display properly
+</Accordion>
+
+<Accordion title="Address Format">
+  Provide complete addresses that customers can use:
+  - Include street number and name
+  - Add landmark information if helpful
+  - Consider including phone numbers in the address field for customer convenience
+</Accordion>
+
+<Accordion title="Organizational Strategy">
+  For large operations:
+  - Group stores by region if you have many locations
+  - Use a master list to track which stores are active
+  - Regularly audit store information for accuracy
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Creating Products" icon="box" href="/guides/creating-products">
+    Build your product catalog for advertising
+  </Card>
+  <Card title="Building Sequences" icon="list" href="/guides/building-sequences">
+    Create location-specific ad playlists
+  </Card>
+</CardGroup>

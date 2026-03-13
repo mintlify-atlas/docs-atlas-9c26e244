@@ -1,0 +1,205 @@
+---
+title: "Dashboard Component"
+description: "Main control panel for creating and launching advertising display sequences"
+---
+
+## Overview
+
+The Dashboard component is the main control interface for PromoMaster Pro. It allows users to browse products and announcements, create mixed playlists, and launch advertising displays.
+
+## Component Signature
+
+```typescript
+import { Product, Store, Announcement, DisplayItem } from '../types';
+
+interface DashboardProps {
+  products: Product[];
+  announcements: Announcement[];
+  stores: Store[];
+  onStartDisplay: (items: DisplayItem[], storeId: string, duration: number) => void;
+  defaultDuration: number;
+}
+
+const Dashboard: React.FC<DashboardProps> = (props) => { /* ... */ };
+```
+
+## Props
+
+<ParamField path="products" type="Product[]" required>
+  Array of all available products that can be added to display sequences
+</ParamField>
+
+<ParamField path="announcements" type="Announcement[]" required>
+  Array of all available announcements that can be added to display sequences
+</ParamField>
+
+<ParamField path="stores" type="Store[]" required>
+  Array of store locations where displays can be shown. The first store is selected by default.
+</ParamField>
+
+<ParamField path="onStartDisplay" type="(items: DisplayItem[], storeId: string, duration: number) => void" required>
+  Callback function invoked when user launches a display. Receives:
+  - `items`: Array of DisplayItems in the sequence
+  - `storeId`: Selected store's unique identifier
+  - `duration`: Duration in seconds for each item
+</ParamField>
+
+<ParamField path="defaultDuration" type="number" required>
+  Default duration in seconds for each display item. User can adjust this value.
+</ParamField>
+
+## Features
+
+### Three-Tab Interface
+
+1. **Products Tab**: Browse and select products from the catalog
+2. **Announcements Tab**: Browse and select custom announcements
+3. **Playlist Tab**: View and manage the display sequence
+
+### Playlist Management
+
+- **Add to Playlist**: Add individual items to the sequence
+- **Launch Now**: Immediately display a single item
+- **Reorder Items**: Move items up/down in the sequence
+- **Remove Items**: Delete items from the sequence
+- **Add All**: Bulk add all products and announcements
+
+### Search and Filter
+
+- Search products by name or category
+- Search announcements by title or message
+- Real-time filtering as you type
+
+### Display Controls
+
+- **Store Selection**: Choose which store location to display at
+- **Duration Control**: Adjust how long each item displays (in seconds)
+- **Start Transmission**: Launch the entire playlist sequence
+
+## Usage Example
+
+```typescript
+import Dashboard from './components/Dashboard';
+import { Product, Store, Announcement, DisplayItem } from './types';
+
+function App() {
+  const [products, setProducts] = useState<Product[]>([/* ... */]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([/* ... */]);
+  const [stores, setStores] = useState<Store[]>([/* ... */]);
+
+  const handleStartDisplay = (
+    items: DisplayItem[],
+    storeId: string,
+    duration: number
+  ) => {
+    console.log(`Starting display at store ${storeId}`);
+    console.log(`${items.length} items, ${duration}s each`);
+    // Navigate to display view or trigger display logic
+  };
+
+  return (
+    <Dashboard
+      products={products}
+      announcements={announcements}
+      stores={stores}
+      onStartDisplay={handleStartDisplay}
+      defaultDuration={5}
+    />
+  );
+}
+```
+
+## Component State
+
+The Dashboard manages the following internal state:
+
+| State | Type | Description |
+|-------|------|-------------|
+| `selectedStore` | `string` | Currently selected store ID |
+| `searchTerm` | `string` | Current search query |
+| `playlist` | `DisplayItem[]` | Current display sequence |
+| `duration` | `number` | Display duration per item |
+| `activeTab` | `'products' \| 'announcements' \| 'playlist'` | Active tab view |
+
+## User Interactions
+
+### Adding Items to Playlist
+
+```typescript
+const addToPlaylist = (item: DisplayItem) => {
+  setPlaylist(prev => [...prev, item]);
+};
+```
+
+### Launching a Single Item
+
+```typescript
+const handleLaunchItemNow = (item: DisplayItem) => {
+  onStartDisplay([item], selectedStore, duration);
+};
+```
+
+### Launching Full Playlist
+
+```typescript
+const handleLaunchAllMixed = () => {
+  if (playlist.length > 0 && selectedStore) {
+    onStartDisplay(playlist, selectedStore, duration);
+  }
+};
+```
+
+## Filtering Logic
+
+### Product Filtering
+
+```typescript
+const filteredProducts = products.filter(p => 
+  p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  p.category.toLowerCase().includes(searchTerm.toLowerCase())
+);
+```
+
+### Announcement Filtering
+
+```typescript
+const filteredAnnouncements = announcements.filter(a =>
+  a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  a.message.toLowerCase().includes(searchTerm.toLowerCase())
+);
+```
+
+## Styling
+
+The Dashboard uses Tailwind CSS with custom animations:
+
+- `animate-fadeIn`: Smooth entrance animations for tab content
+- `animate-bounce`: Badge animation for playlist item count
+- Responsive grid layouts for products and announcements
+- Hover effects with scale and shadow transitions
+
+## Best Practices
+
+<Tip>
+**Empty State Handling**
+- The component gracefully handles empty arrays for products, announcements, and stores
+- Shows helpful empty state messages with call-to-action buttons
+</Tip>
+
+<Warning>
+**Validation**
+- The "Start Transmission" button is disabled when the playlist is empty
+- Ensure at least one store exists in the stores array for proper functionality
+</Warning>
+
+## Related Types
+
+- [Product](/api/types/product)
+- [Announcement](/api/types/announcement)
+- [Store](/api/types/store)
+- [DisplayItem](/api/types/display-item)
+
+## Related Components
+
+- [AdDisplay Component](/api/components/ad-display) - Displays the content from Dashboard selections
+- [Management Component](/api/components/management) - Creates products and announcements shown in Dashboard

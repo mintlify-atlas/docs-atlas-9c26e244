@@ -1,0 +1,111 @@
+---
+title: "DisplayItem"
+description: "DisplayItem type for creating mixed content playlists"
+---
+
+## Overview
+
+The `DisplayItem` interface is a discriminated union type that references either a product or an announcement for display. This type enables the creation of mixed playlists containing both products and announcements.
+
+## Type Definition
+
+```typescript
+export interface DisplayItem {
+  type: 'product' | 'announcement';
+  id: string;
+}
+```
+
+## Properties
+
+<ResponseField name="type" type="'product' | 'announcement'" required>
+  Discriminator field indicating whether this item references a product or an announcement
+</ResponseField>
+
+<ResponseField name="id" type="string" required>
+  The unique identifier of the product or announcement being referenced
+</ResponseField>
+
+## Usage Example
+
+### Creating a Product Display Item
+
+```typescript
+const productItem: DisplayItem = {
+  type: 'product',
+  id: 'prod-001'
+};
+```
+
+### Creating an Announcement Display Item
+
+```typescript
+const announcementItem: DisplayItem = {
+  type: 'announcement',
+  id: 'ann-001'
+};
+```
+
+### Creating a Mixed Playlist
+
+```typescript
+const playlist: DisplayItem[] = [
+  { type: 'product', id: 'prod-001' },
+  { type: 'product', id: 'prod-002' },
+  { type: 'announcement', id: 'ann-001' },
+  { type: 'product', id: 'prod-003' },
+  { type: 'announcement', id: 'ann-002' }
+];
+```
+
+## Type Discrimination Pattern
+
+When processing DisplayItems, use type discrimination to handle products and announcements differently:
+
+```typescript
+function processDisplayItem(
+  item: DisplayItem,
+  products: Product[],
+  announcements: Announcement[]
+) {
+  if (item.type === 'product') {
+    const product = products.find(p => p.id === item.id);
+    // Handle product display
+  } else {
+    const announcement = announcements.find(a => a.id === item.id);
+    // Handle announcement display
+  }
+}
+```
+
+## Common Patterns
+
+### Converting Products to DisplayItems
+
+```typescript
+const products: Product[] = [/* ... */];
+const displayItems: DisplayItem[] = products.map(p => ({
+  type: 'product',
+  id: p.id
+}));
+```
+
+### Converting Announcements to DisplayItems
+
+```typescript
+const announcements: Announcement[] = [/* ... */];
+const displayItems: DisplayItem[] = announcements.map(a => ({
+  type: 'announcement',
+  id: a.id
+}));
+```
+
+## Related Types
+
+- [Product](/api/types/product) - Referenced by DisplayItems with `type: 'product'`
+- [Announcement](/api/types/announcement) - Referenced by DisplayItems with `type: 'announcement'`
+
+## Used By
+
+- [Dashboard Component](/api/components/dashboard) - `onStartDisplay` callback accepts DisplayItem arrays
+- AdDisplay Component - Resolves DisplayItems to actual content for rendering

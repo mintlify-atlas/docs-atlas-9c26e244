@@ -1,0 +1,321 @@
+---
+title: "AdDisplay Component"
+description: "Full-screen advertising display component with automatic rotation and animations"
+---
+
+## Overview
+
+The AdDisplay component renders a full-screen, immersive advertising display that rotates through products and announcements with professional animations, progress tracking, and dynamic theming.
+
+## Component Signature
+
+```typescript
+import { Product, Store, Announcement } from '../types';
+
+interface AdDisplayProps {
+  items: (Product | Announcement)[];
+  store: Store;
+  duration: number;
+  onExit: () => void;
+}
+
+const AdDisplay: React.FC<AdDisplayProps> = (props) => { /* ... */ };
+```
+
+## Props
+
+<ParamField path="items" type="(Product | Announcement)[]" required>
+  Array of products and/or announcements to display in sequence. Must contain at least one item.
+</ParamField>
+
+<ParamField path="store" type="Store" required>
+  Store information to display alongside the advertisements
+</ParamField>
+
+<ParamField path="duration" type="number" required>
+  Duration in seconds for each item before automatically advancing to the next
+</ParamField>
+
+<ParamField path="onExit" type="() => void" required>
+  Callback function invoked when the user clicks the exit button
+</ParamField>
+
+## Features
+
+### Product Display
+
+- **Large Product Image**: High-resolution image with zoom animation
+- **Dynamic Theming**: Uses product's `primaryColor` for theme accents
+- **Price Display**: Massive, eye-catching price formatting
+- **Promotion Badges**: Special badges for daily, weekly, and general promotions
+- **Slogan Display**: Shows product slogan if available
+- **Store Information**: Location details prominently displayed
+- **Premium Badge**: Quality indicator overlay on images
+
+### Announcement Display
+
+- **Customizable Typography**: Uses announcement's configured font and size
+- **Full Color Control**: Background and text colors from announcement settings
+- **Text Alignment**: Supports left, center, and right alignment
+- **Animation Effects**: Optional shine animation effect
+- **Store Branding**: Store name displayed prominently
+
+### Shared Features
+
+- **Progress Bar**: Visual indicator of time remaining for current item
+- **Auto-Rotation**: Automatic advancement after specified duration
+- **Slide Indicators**: Dots showing total items and current position
+- **Scrolling Ticker**: Bottom marquee with rotating messages
+- **Exit Button**: Top-right button to close display
+- **Dynamic Background**: Animated gradient blurs matching theme color
+
+## Usage Example
+
+```typescript
+import AdDisplay from './components/AdDisplay';
+import { Product, Store, Announcement } from './types';
+
+function DisplayView() {
+  const store: Store = {
+    id: 'store-1',
+    name: 'Downtown Market',
+    address: '123 Main Street',
+    logoColor: 'bg-blue-600'
+  };
+
+  const items: (Product | Announcement)[] = [
+    {
+      id: 'prod-1',
+      name: 'Premium Coffee',
+      price: 1299,
+      unit: 'kg',
+      category: 'Beverages',
+      isPromotion: true,
+      promotionType: 'dia',
+      slogan: '¡Café de calidad suprema!',
+      primaryColor: '#8B4513',
+      // ... other fields
+    },
+    {
+      id: 'ann-1',
+      title: 'Hours',
+      message: 'Open 7 days a week!',
+      fontSize: 72,
+      fontFamily: 'font-bebas',
+      backgroundColor: '#1e293b',
+      textColor: '#ffffff',
+      textAlign: 'center',
+      hasAnimation: true
+    }
+  ];
+
+  const handleExit = () => {
+    // Return to dashboard or previous view
+    console.log('Exiting display...');
+  };
+
+  return (
+    <AdDisplay
+      items={items}
+      store={store}
+      duration={8}
+      onExit={handleExit}
+    />
+  );
+}
+```
+
+## Component State
+
+| State | Type | Description |
+|-------|------|-------------|
+| `currentIndex` | `number` | Index of currently displayed item |
+| `showContent` | `boolean` | Controls fade-in animations |
+| `progress` | `number` | Progress percentage (0-100) for current item |
+
+## Auto-Rotation Logic
+
+```typescript
+useEffect(() => {
+  if (items.length <= 1) return; // Skip rotation for single items
+
+  const interval = 100; // Update every 100ms
+  const totalSteps = (duration * 1000) / interval;
+  
+  const timer = setInterval(() => {
+    setProgress((prev) => {
+      if (prev >= 100) {
+        nextSlide(); // Advance to next item
+        return 0;
+      }
+      return prev + (100 / totalSteps);
+    });
+  }, interval);
+
+  return () => clearInterval(timer);
+}, [duration, items.length, nextSlide]);
+```
+
+## Type Discrimination
+
+The component uses type discrimination to determine whether to render a product or announcement:
+
+```typescript
+const currentItem = items[currentIndex];
+const isProduct = 'price' in currentItem;
+const product = isProduct ? (currentItem as Product) : null;
+const announcement = !isProduct ? (currentItem as Announcement) : null;
+```
+
+## Dynamic Theming
+
+The display adapts its color scheme based on the current item:
+
+```typescript
+const themeColor = product 
+  ? (product.primaryColor || '#4f46e5') 
+  : (announcement?.backgroundColor || '#1e293b');
+```
+
+This color is used for:
+- Progress bar
+- Background gradient blurs
+- Accent colors throughout the UI
+- Store branding elements
+
+## Promotion Labels
+
+Products with `isPromotion: true` display special labels:
+
+```typescript
+const getPromoLabel = (type?: string) => {
+  switch (type) {
+    case 'dia': return '¡OFERTA DEL DÍA!';
+    case 'semana': return '¡OFERTA DE LA SEMANA!';
+    case 'general':
+    default: return '¡OFERTA IMPERDIBLE!';
+  }
+};
+```
+
+## Ticker Messages
+
+The scrolling ticker displays contextual messages:
+
+### For Products
+
+- Product name (uppercase)
+- "CALIDAD GARANTIZADA"
+- "DISPONIBLE AHORA"
+- Store name
+- "¡OFERTA LIMITADA!" (if promotion)
+- Price information (if promotion)
+- "CALIDAD PREMIUM SELECCIONADA" (for meat category)
+
+### For Announcements
+
+- Announcement title
+- "AVISO IMPORTANTE"
+- Store name
+- "¡GRACIAS POR SU VISITA!"
+
+## Animations
+
+### CSS Animations
+
+```css
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes softZoom {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+```
+
+### Applied Animations
+
+- **Marquee**: Continuous scrolling ticker (35s duration)
+- **Soft Zoom**: Gentle zoom effect on product images (15s duration)
+- **Fade Transitions**: Smooth opacity and scale transitions between items
+- **Pulse Effects**: Animated gradient backgrounds
+
+## Interactive Features
+
+### Manual Navigation
+
+Users can click slide indicators to jump to specific items:
+
+```typescript
+onClick={() => {
+  setCurrentIndex(i);
+  setProgress(0);
+  setShowContent(false);
+  setTimeout(() => setShowContent(true), 100);
+}}
+```
+
+### Exit Button
+
+Clickable exit button in the top-right corner:
+- Red background with hover effect
+- Rotating X icon on hover
+- Calls `onExit` callback
+
+## Styling Classes
+
+<Note>
+The component uses several custom font classes that should be defined in your CSS:
+- `font-bebas` - Bebas Neue font
+- `font-sans` - Sans-serif font
+- `font-serif` - Serif font
+- `font-mono` - Monospace font
+</Note>
+
+## Best Practices
+
+<Tip>
+**Duration Guidelines**
+- Products: 8-12 seconds for full impact
+- Announcements: 5-8 seconds for text-only content
+- Single items: Any duration (auto-rotation disabled)
+</Tip>
+
+<Warning>
+**Performance Considerations**
+- Use optimized images to prevent loading delays
+- Test with actual display hardware for timing accuracy
+- Consider screen resolution and aspect ratio
+</Warning>
+
+## Responsive Design
+
+The component is fully responsive with breakpoints:
+
+- **Mobile**: Vertical layout, smaller images
+- **Tablet (md)**: Larger images, horizontal layout available
+- **Desktop (lg)**: Full horizontal layout
+- **Large Desktop (xl)**: Maximum size images and text
+
+## Fullscreen Mode
+
+```typescript
+<div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center overflow-hidden font-inter select-none">
+```
+
+- Fixed positioning covers entire viewport
+- High z-index (100) ensures it's above other content
+- Prevents text selection
+- Dark background for maximum contrast
+
+## Related Types
+
+- [Product](/api/types/product)
+- [Announcement](/api/types/announcement)
+- [Store](/api/types/store)
+
+## Related Components
+
+- [Dashboard Component](/api/components/dashboard) - Launches displays via `onStartDisplay` callback

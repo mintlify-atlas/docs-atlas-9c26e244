@@ -1,0 +1,308 @@
+---
+title: Store Configuration
+description: Manage multiple store locations with custom branding and information
+icon: building
+---
+
+## Overview
+
+PromoMaster Pro supports multi-store operations, allowing you to manage separate locations with individual branding and information. Each store can be selected when launching displays, ensuring location-specific information appears on-screen.
+
+## Store Data Structure
+
+Each store location contains the following information:
+
+```typescript
+export interface Store {
+  id: string;
+  name: string;
+  address: string;
+  logoColor: string;  // Tailwind CSS class (e.g., 'bg-indigo-600')
+}
+```
+
+<Note>
+Stores use Tailwind CSS color classes rather than hex codes for consistent theming across the application.
+</Note>
+
+## Creating Store Locations
+
+<Steps>
+  <Step title="Access Store Management">
+    Navigate to the Management section and select the **Sucursales** tab.
+  </Step>
+  
+  <Step title="Enter Store Details">
+    Fill in the store name and full address.
+  </Step>
+  
+  <Step title="Choose Brand Color">
+    Select a logo color from the available options (applied via Tailwind classes).
+  </Step>
+  
+  <Step title="Save Location">
+    Click **Guardar Local** to add the store to your system.
+  </Step>
+</Steps>
+
+## Store Form Implementation
+
+The store creation form is streamlined for quick data entry:
+
+```tsx
+<form onSubmit={e => {
+  e.preventDefault();
+  if (editingStoreId) { 
+    onUpdateStore({...storeForm, id: editingStoreId}); 
+    setEditingStoreId(null); 
+  }
+  else onAddStore(storeForm);
+  setStoreForm({ name: '', address: '', logoColor: 'bg-indigo-600' });
+}}>
+  <div>
+    <label>Nombre</label>
+    <input 
+      type="text" 
+      required 
+      value={storeForm.name} 
+      onChange={e => setStoreForm({...storeForm, name: e.target.value})}
+    />
+  </div>
+  <div>
+    <label>Dirección</label>
+    <input 
+      type="text" 
+      required 
+      value={storeForm.address} 
+      onChange={e => setStoreForm({...storeForm, address: e.target.value})}
+    />
+  </div>
+  <button type="submit">Guardar Local</button>
+</form>
+```
+
+## Multi-Store Management
+
+### Store List Display
+
+Stores are displayed in a card-based layout with visual branding:
+
+```tsx
+<div className="bg-white p-4 rounded-2xl border">
+  <div className="flex items-center gap-4">
+    <div className={`w-12 h-12 rounded-xl ${store.logoColor} flex items-center justify-center text-white font-bold text-xl`}>
+      {store.name.charAt(0)}
+    </div>
+    <div>
+      <h4 className="font-bold">{store.name}</h4>
+      <p className="text-sm text-slate-500">{store.address}</p>
+    </div>
+  </div>
+  <div className="flex gap-2">
+    <button onClick={() => editStore(store)}>Edit</button>
+    <button onClick={() => onDeleteStore(store.id)}>Delete</button>
+  </div>
+</div>
+```
+
+Each store card shows:
+- Logo badge with first letter of store name
+- Store name and full address
+- Edit and delete actions on hover
+
+## Store Selection in Dashboard
+
+When creating playlists or launching displays, select the active store location:
+
+```tsx
+<div className="flex items-center gap-3">
+  <label className="text-sm font-bold">Local:</label>
+  <select 
+    value={selectedStore}
+    onChange={(e) => setSelectedStore(e.target.value)}
+    className="bg-white border-2 rounded-xl px-4 py-2"
+  >
+    {stores.map(s => (
+      <option key={s.id} value={s.id}>{s.name}</option>
+    ))}
+  </select>
+</div>
+```
+
+<Tip>
+The first store in your list is automatically selected as the default when you open the Dashboard.
+</Tip>
+
+## Store Information in Displays
+
+### Product Display Integration
+
+Store information appears prominently in product displays:
+
+```tsx
+<div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full">
+  <Zap size={16} fill="currentColor" />
+  {store.name}
+</div>
+```
+
+```tsx
+<div className="p-8 bg-white/5 rounded-[2.5rem] flex items-center justify-between">
+  <div>
+    <div className="text-[10px] font-black uppercase">UBICACIÓN</div>
+    <div className="text-xl xl:text-2xl font-black">{store.address}</div>
+  </div>
+</div>
+```
+
+### Announcement Display Integration
+
+Store name appears at the top of announcement displays with an animated icon:
+
+```tsx
+<div className="mb-12 inline-flex items-center gap-6 bg-white/10 px-10 py-4 rounded-[2rem]">
+  <Megaphone className="text-white animate-bounce" size={40} />
+  <span className="text-2xl font-black text-white tracking-[0.4em] uppercase">
+    {store.name}
+  </span>
+</div>
+```
+
+### Ticker Integration
+
+The store name scrolls continuously in the bottom ticker:
+
+```tsx
+const tickerMessages = useMemo(() => {
+  const messages = [
+    product.name.toUpperCase(),
+    "CALIDAD GARANTIZADA",
+    "DISPONIBLE AHORA",
+    store.name.toUpperCase()  // Store name in ticker
+  ];
+  return messages;
+}, [currentItem, store.name]);
+```
+
+## Editing Store Information
+
+Click the edit icon on any store card to update its information:
+
+```tsx
+const handleEditStore = (store: Store) => {
+  setEditingStoreId(store.id);
+  setStoreForm({...store});
+};
+```
+
+The form switches to edit mode with an **Actualizar** button instead of **Crear**.
+
+## Deleting Stores
+
+<Warning>
+Deleting a store is permanent. Ensure no displays are currently active using this store before deletion.
+</Warning>
+
+To delete a store:
+1. Click the trash icon on the store card
+2. Confirm the deletion
+3. The store is immediately removed from the system
+
+## Store Color Branding
+
+The `logoColor` property uses Tailwind CSS background classes for consistent theming:
+
+```typescript
+logoColor: 'bg-indigo-600'  // Default indigo
+logoColor: 'bg-blue-600'    // Blue
+logoColor: 'bg-green-600'   // Green
+logoColor: 'bg-purple-600'  // Purple
+logoColor: 'bg-rose-600'    // Rose/Red
+```
+
+<CardGroup cols={3}>
+  <Card title="Indigo" icon="circle" color="#4f46e5">
+    Professional, tech-forward brand identity
+  </Card>
+  <Card title="Blue" icon="circle" color="#2563eb">
+    Trustworthy, reliable brand feeling
+  </Card>
+  <Card title="Green" icon="circle" color="#16a34a">
+    Fresh, organic, eco-friendly image
+  </Card>
+  <Card title="Purple" icon="circle" color="#9333ea">
+    Premium, luxury positioning
+  </Card>
+  <Card title="Rose" icon="circle" color="#e11d48">
+    Bold, energetic, sale-focused
+  </Card>
+  <Card title="Slate" icon="circle" color="#475569">
+    Modern, minimalist aesthetic
+  </Card>
+</CardGroup>
+
+## Multi-Location Use Cases
+
+<Tabs>
+  <Tab title="Retail Chains">
+    Manage multiple store locations across a city or region:
+    
+    - **Downtown**: 123 Main Street
+    - **Westside**: 456 Oak Avenue
+    - **Northgate**: 789 Maple Boulevard
+    
+    Each location displays its own address and branding while sharing the same product catalog.
+  </Tab>
+  
+  <Tab title="Franchise Operations">
+    Support franchisees with individual store configurations:
+    
+    - Different addresses for each franchise
+    - Custom logo colors for regional branding
+    - Shared product database with localized display
+  </Tab>
+  
+  <Tab title="Department Sections">
+    Use stores to represent different departments within a single location:
+    
+    - **Meat Department**: Aisle 12
+    - **Produce Section**: Aisle 3-4
+    - **Bakery**: Front Corner
+  </Tab>
+</Tabs>
+
+## Application State Integration
+
+Stores are part of the global application state:
+
+```typescript
+export interface AppState {
+  stores: Store[];
+  products: Product[];
+  announcements: Announcement[];
+  currentStoreId?: string;     // Currently selected store
+  currentItems?: DisplayItem[];
+  displayDuration?: number; 
+  view: 'dashboard' | 'display' | 'management';
+}
+```
+
+The `currentStoreId` tracks which store is selected in the Dashboard for display purposes.
+
+## Best Practices
+
+<Accordion title="Complete Addresses">
+Always include full, accurate addresses. This information is displayed prominently during product advertisements.
+</Accordion>
+
+<Accordion title="Consistent Naming">
+Use clear, recognizable store names. Avoid abbreviations that customers might not understand.
+</Accordion>
+
+<Accordion title="Strategic Colors">
+Choose logo colors that align with your brand identity and create visual distinction between locations.
+</Accordion>
+
+<Accordion title="Regular Updates">
+Keep store information current, especially if locations change or relocate.
+</Accordion>

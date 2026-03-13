@@ -1,0 +1,381 @@
+---
+title: "AI Image Generation"
+description: "Generate professional product images using Google Gemini AI"
+---
+
+## Overview
+
+PromoMaster Pro can generate high-quality product images using Google's Gemini AI image generation model. This feature is perfect when you need professional product photography but don't have actual product images available.
+
+## Function Signature
+
+Here's the actual implementation from `geminiService.ts`:
+
+```typescript
+export const generateProductImage = async (
+  productName: string
+): Promise<string | null> => {
+  try {
+    const prompt = `A professional, high-quality commercial studio photography of ${productName}. Clean background, cinematic lighting, 4k resolution, hyper-realistic, professional product placement.`;
+    
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [{ text: prompt }]
+      },
+      config: {
+        imageConfig: {
+          aspectRatio: "1:1"
+        }
+      }
+    });
+
+    // Iterate through parts to find the image data
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Error generating image:", error);
+    return null;
+  }
+};
+```
+
+## How It Works
+
+<Steps>
+  <Step title="Build Professional Prompt">
+    The system constructs a detailed prompt optimized for commercial product photography:
+    
+    ```typescript
+    const prompt = `A professional, high-quality commercial studio 
+    photography of ${productName}. Clean background, cinematic 
+    lighting, 4k resolution, hyper-realistic, professional 
+    product placement.`;
+    ```
+  </Step>
+
+  <Step title="Configure Image Generation">
+    The function sends a request to Gemini's image generation model with specific configuration:
+    - Model: `gemini-2.5-flash-image`
+    - Aspect ratio: `1:1` (square format, perfect for product displays)
+    - High-quality commercial style
+  </Step>
+
+  <Step title="Extract Image Data">
+    The AI returns the image as base64-encoded inline data. The function extracts this data and converts it to a data URL format that can be used directly in HTML:
+    
+    ```typescript
+    return `data:${mimeType};base64,${data}`;
+    ```
+  </Step>
+</Steps>
+
+## Usage Examples
+
+### Basic Usage
+
+```typescript
+import { generateProductImage } from './services/geminiService';
+
+const imageUrl = await generateProductImage("Premium Coffee Beans");
+if (imageUrl) {
+  console.log("Image generated successfully!");
+  // Use imageUrl in an <img> tag
+}
+```
+
+### In React Components
+
+Here's how it's integrated in the `Management.tsx` component:
+
+```typescript
+const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
+const handleGenerateImage = async () => {
+  if (!productForm.name) {
+    alert("Introduce un nombre de producto para generar una imagen.");
+    return;
+  }
+  
+  setIsGeneratingImage(true);
+  const imageUrl = await generateProductImage(productForm.name);
+  if (imageUrl) {
+    setProductForm(prev => ({ ...prev, imageUrl }));
+  }
+  setIsGeneratingImage(false);
+};
+```
+
+### With Error Handling
+
+```typescript
+const generateImage = async (productName: string) => {
+  try {
+    const imageUrl = await generateProductImage(productName);
+    
+    if (!imageUrl) {
+      console.warn("Image generation returned null");
+      // Use placeholder or default image
+      return "/images/placeholder.png";
+    }
+    
+    return imageUrl;
+  } catch (error) {
+    console.error("Image generation failed:", error);
+    return "/images/error-placeholder.png";
+  }
+};
+```
+
+## UI Integration
+
+The image generator is part of the product management form with three input modes:
+
+<Steps>
+  <Step title="Select AI Mode">
+    Users can choose between three image input methods:
+    - **URL**: Link to an existing image
+    - **Upload**: Upload an image file
+    - **AI**: Generate with artificial intelligence
+  </Step>
+
+  <Step title="Trigger Generation">
+    When AI mode is selected, a button triggers image generation:
+
+    ```typescript
+    <button 
+      type="button" 
+      onClick={handleGenerateImage}
+      disabled={isGeneratingImage || !productForm.name}
+      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 
+                 text-white rounded-xl"
+    >
+      {isGeneratingImage ? (
+        <Loader2 className="animate-spin" size={18} />
+      ) : (
+        <Wand2 size={18} />
+      )}
+      Generar con IA
+    </button>
+    ```
+  </Step>
+
+  <Step title="Preview Generated Image">
+    The generated image is displayed in a preview box and can be removed if needed:
+
+    ```typescript
+    {productForm.imageUrl && (
+      <div className="relative w-20 h-20 rounded-lg overflow-hidden 
+                      border-2 border-indigo-500">
+        <img 
+          src={productForm.imageUrl} 
+          className="w-full h-full object-cover" 
+        />
+        <button 
+          onClick={() => setProductForm(p => ({...p, imageUrl: ''}))} 
+          className="absolute top-0 right-0 bg-rose-500 text-white"
+        >
+          <X size={12} />
+        </button>
+      </div>
+    )}
+    ```
+  </Step>
+</Steps>
+
+## Prompt Template
+
+The system uses this optimized prompt structure:
+
+```text
+A professional, high-quality commercial studio photography of {productName}.
+Clean background, cinematic lighting, 4k resolution, hyper-realistic,
+professional product placement.
+```
+
+<Tip>
+  The prompt is designed to produce clean, professional product images suitable for retail advertising displays. Keywords like "commercial studio photography" and "professional product placement" help ensure high-quality results.
+</Tip>
+
+## Image Configuration
+
+The function uses specific configuration for optimal results:
+
+| Setting | Value | Purpose |
+|---------|-------|----------|
+| Model | `gemini-2.5-flash-image` | Fast, high-quality image generation |
+| Aspect Ratio | `1:1` | Square format for product displays |
+| Output Format | Base64 data URL | Direct embedding in HTML |
+
+<Note>
+  The 1:1 aspect ratio is ideal for product catalogs and advertising displays where consistent sizing is important.
+</Note>
+
+## Return Value
+
+The function returns one of two values:
+
+<CardGroup cols={2}>
+  <Card title="Success" icon="check">
+    A data URL string in format: `data:image/png;base64,{encoded_data}`
+  </Card>
+  <Card title="Failure" icon="times">
+    `null` if generation fails or no image data is returned
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+### Use Descriptive Product Names
+
+```typescript
+// Good - Specific and descriptive
+await generateProductImage("Red Delicious Apple");
+await generateProductImage("Stainless Steel Coffee Maker");
+
+// Less effective - Too generic
+await generateProductImage("Fruit");
+await generateProductImage("Appliance");
+```
+
+### Handle Null Returns
+
+Always check for null returns and provide fallbacks:
+
+```typescript
+const imageUrl = await generateProductImage(productName);
+const finalUrl = imageUrl || '/images/placeholder-product.png';
+```
+
+### Show Loading State
+
+```typescript
+const [generating, setGenerating] = useState(false);
+
+const generate = async () => {
+  setGenerating(true);
+  const url = await generateProductImage(name);
+  setImageUrl(url);
+  setGenerating(false);
+};
+
+return (
+  <button disabled={generating}>
+    {generating ? 'Generating...' : 'Generate Image'}
+  </button>
+);
+```
+
+### Validate Before Generation
+
+```typescript
+if (!productName || productName.trim().length < 3) {
+  alert("Please provide a valid product name");
+  return;
+}
+
+const imageUrl = await generateProductImage(productName);
+```
+
+## Performance Considerations
+
+<Warning>
+  Image generation is more resource-intensive than text generation:
+</Warning>
+
+- **Response Time**: Typically 5-15 seconds per image
+- **File Size**: Base64-encoded images can be large (100KB - 500KB)
+- **Rate Limits**: Image generation may have stricter quotas
+- **Bandwidth**: Consider storage solutions for production use
+
+### Production Recommendations
+
+```typescript
+// Option 1: Save to cloud storage
+const imageUrl = await generateProductImage(productName);
+if (imageUrl) {
+  // Upload to S3, Cloudinary, etc.
+  const cloudUrl = await uploadToCloud(imageUrl);
+  return cloudUrl;
+}
+
+// Option 2: Cache generated images
+const cacheKey = `product-image-${productName}`;
+const cached = localStorage.getItem(cacheKey);
+if (cached) return cached;
+
+const imageUrl = await generateProductImage(productName);
+localStorage.setItem(cacheKey, imageUrl);
+```
+
+## Customization
+
+You can customize the prompt for different image styles:
+
+### Minimalist Style
+
+```typescript
+const prompt = `Minimalist product photography of ${productName} on white 
+background, clean aesthetic, soft shadows, professional e-commerce style.`;
+```
+
+### Lifestyle Photography
+
+```typescript
+const prompt = `Lifestyle photography featuring ${productName} in real-world 
+setting, natural lighting, warm tones, Instagram-worthy composition.`;
+```
+
+### Change Aspect Ratio
+
+```typescript
+config: {
+  imageConfig: {
+    aspectRatio: "16:9"  // Wide format for banners
+  }
+}
+```
+
+## Troubleshooting
+
+### Image Not Generating
+
+- Verify your API key is configured correctly
+- Check if you have image generation quota remaining
+- Ensure the product name is descriptive enough
+
+### Poor Quality Results
+
+- Make product names more specific
+- Try adding category context: "Fresh Red Apple" vs "Apple"
+- Experiment with different prompt keywords
+
+### Large File Sizes
+
+Base64 images can bloat your application:
+
+```typescript
+// Solution: Upload to cloud storage
+import { uploadImage } from './cloudStorage';
+
+const base64Url = await generateProductImage(productName);
+if (base64Url) {
+  const publicUrl = await uploadImage(base64Url, productName);
+  return publicUrl;
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Generate Slogans" icon="sparkles" href="/ai/slogan-generation">
+    Create AI-powered marketing slogans
+  </Card>
+  <Card title="API Setup" icon="key" href="/ai/setup">
+    Configure your Google Gemini API key
+  </Card>
+</CardGroup>

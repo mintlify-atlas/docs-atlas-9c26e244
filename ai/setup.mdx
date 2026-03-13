@@ -1,0 +1,152 @@
+---
+title: "AI Setup"
+description: "Configure Google Gemini AI integration for PromoMaster Pro"
+---
+
+## Overview
+
+PromoMaster Pro uses Google's Gemini AI to power intelligent features like slogan generation and product image creation. This guide covers how to set up and configure the AI integration.
+
+<Warning>
+  Never commit your API key to version control. Always use environment variables and add `.env` to your `.gitignore` file.
+</Warning>
+
+## Prerequisites
+
+Before setting up AI features, you'll need:
+
+- A Google AI API key (get one at [Google AI Studio](https://makersuite.google.com/app/apikey))
+- Node.js 18+ installed
+- Access to the PromoMaster Pro codebase
+
+## Configuration Steps
+
+<Steps>
+  <Step title="Get Your API Key">
+    1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+    2. Sign in with your Google account
+    3. Create a new API key
+    4. Copy the key for the next step
+  </Step>
+
+  <Step title="Set Environment Variable">
+    Create a `.env` file in your project root and add your API key:
+
+    ```bash
+    API_KEY=your_google_ai_api_key_here
+    ```
+
+    <Note>
+      Make sure `.env` is listed in your `.gitignore` file to prevent accidentally committing secrets.
+    </Note>
+  </Step>
+
+  <Step title="Initialize the AI Client">
+    The Gemini service is initialized automatically when imported. Here's how it works:
+
+    ```typescript
+    import { GoogleGenAI } from "@google/genai";
+
+    // Initialize the AI client with your API key
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    ```
+
+    This client instance is used by all AI features in PromoMaster Pro.
+  </Step>
+
+  <Step title="Verify Setup">
+    Test your configuration by generating a slogan:
+
+    ```typescript
+    import { generateSlogan } from './services/geminiService';
+
+    const slogan = await generateSlogan(
+      "Premium Coffee",
+      "Rich, aromatic blend"
+    );
+    console.log(slogan); // Should output an AI-generated slogan
+    ```
+  </Step>
+</Steps>
+
+## Service Architecture
+
+The AI service is centralized in `geminiService.ts` and provides three main functions:
+
+<CardGroup cols={3}>
+  <Card title="Slogan Generation" icon="sparkles" href="/ai/slogan-generation">
+    Create marketing slogans from product data
+  </Card>
+  <Card title="Image Generation" icon="image" href="/ai/image-generation">
+    Generate product images using AI
+  </Card>
+  <Card title="Color Suggestion" icon="palette">
+    Suggest brand colors based on products
+  </Card>
+</CardGroup>
+
+## Security Best Practices
+
+<Warning>
+  Follow these security guidelines to protect your API key:
+</Warning>
+
+- **Never hardcode API keys** in your source code
+- **Use environment variables** for all sensitive configuration
+- **Rotate keys regularly** if they're exposed
+- **Set up usage quotas** in the Google Cloud Console
+- **Monitor API usage** to detect unauthorized access
+
+## API Models Used
+
+PromoMaster Pro uses two Gemini models:
+
+| Model | Purpose | Features |
+|-------|---------|----------|
+| `gemini-3-flash-preview` | Text generation | Fast, efficient slogan generation |
+| `gemini-2.5-flash-image` | Image generation | High-quality product images |
+
+<Tip>
+  The service includes fallback responses for all AI functions, so your app will continue working even if the API is unavailable.
+</Tip>
+
+## Troubleshooting
+
+### API Key Not Found
+
+If you see an error about missing API key:
+
+```bash
+# Check if .env file exists
+cat .env
+
+# Verify the variable name matches
+grep API_KEY .env
+```
+
+### Rate Limiting
+
+If you're hitting rate limits:
+
+- Check your quota in Google Cloud Console
+- Implement request throttling in your application
+- Consider upgrading your API plan
+
+### Network Errors
+
+For connection issues:
+
+- Verify your internet connection
+- Check if Google AI services are operational
+- Review firewall settings
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Generate Slogans" icon="pen" href="/ai/slogan-generation">
+    Learn how to create AI-powered marketing slogans
+  </Card>
+  <Card title="Generate Images" icon="image" href="/ai/image-generation">
+    Create product images using AI
+  </Card>
+</CardGroup>

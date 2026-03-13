@@ -1,0 +1,313 @@
+---
+title: "Management Component"
+description: "Advanced configuration interface for managing stores, products, and announcements"
+---
+
+## Overview
+
+The Management component provides a comprehensive interface for creating, editing, and deleting stores, products, and announcements in PromoMaster Pro. It includes AI-powered features for content generation.
+
+## Component Signature
+
+```typescript
+import { Store, Product, Announcement } from '../types';
+
+interface ManagementProps {
+  stores: Store[];
+  products: Product[];
+  announcements: Announcement[];
+  onAddStore: (store: Omit<Store, 'id'>) => void;
+  onUpdateStore: (store: Store) => void;
+  onDeleteStore: (id: string) => void;
+  onAddProduct: (product: Omit<Product, 'id'>) => void;
+  onUpdateProduct: (product: Product) => void;
+  onDeleteProduct: (id: string) => void;
+  onAddAnnouncement: (ann: Omit<Announcement, 'id'>) => void;
+  onUpdateAnnouncement: (ann: Announcement) => void;
+  onDeleteAnnouncement: (id: string) => void;
+}
+
+const Management: React.FC<ManagementProps> = (props) => { /* ... */ };
+```
+
+## Props
+
+### Store Management
+
+<ParamField path="stores" type="Store[]" required>
+  Array of existing store locations
+</ParamField>
+
+<ParamField path="onAddStore" type="(store: Omit<Store, 'id'>) => void" required>
+  Callback to create a new store. The parent component should generate the ID.
+</ParamField>
+
+<ParamField path="onUpdateStore" type="(store: Store) => void" required>
+  Callback to update an existing store
+</ParamField>
+
+<ParamField path="onDeleteStore" type="(id: string) => void" required>
+  Callback to delete a store by ID
+</ParamField>
+
+### Product Management
+
+<ParamField path="products" type="Product[]" required>
+  Array of existing products
+</ParamField>
+
+<ParamField path="onAddProduct" type="(product: Omit<Product, 'id'>) => void" required>
+  Callback to create a new product. The parent component should generate the ID.
+</ParamField>
+
+<ParamField path="onUpdateProduct" type="(product: Product) => void" required>
+  Callback to update an existing product
+</ParamField>
+
+<ParamField path="onDeleteProduct" type="(id: string) => void" required>
+  Callback to delete a product by ID
+</ParamField>
+
+### Announcement Management
+
+<ParamField path="announcements" type="Announcement[]" required>
+  Array of existing announcements
+</ParamField>
+
+<ParamField path="onAddAnnouncement" type="(ann: Omit<Announcement, 'id'>) => void" required>
+  Callback to create a new announcement. The parent component should generate the ID.
+</ParamField>
+
+<ParamField path="onUpdateAnnouncement" type="(ann: Announcement) => void" required>
+  Callback to update an existing announcement
+</ParamField>
+
+<ParamField path="onDeleteAnnouncement" type="(id: string) => void" required>
+  Callback to delete an announcement by ID
+</ParamField>
+
+## Features
+
+### Product Management
+
+- **Create/Edit Products**: Full product information form
+- **Image Management**: Three methods for adding product images:
+  - URL input
+  - File upload
+  - AI generation using Gemini
+- **AI Slogan Generation**: Generate marketing slogans automatically
+- **Promotion Configuration**: Mark products as promotions with type selection
+- **Pricing and Units**: Configure price and unit of measurement
+
+### Announcement Management
+
+- **Visual Editor**: Create custom text announcements
+- **Real-time Preview**: See changes instantly as you edit
+- **Typography Controls**: Font family, size, and alignment
+- **Color Customization**: Background and text color pickers
+- **Animation Toggle**: Enable/disable animation effects
+
+### Store Management
+
+- **Basic Information**: Name and address
+- **Brand Colors**: Logo color configuration
+- **Edit/Delete**: Modify or remove existing stores
+
+## Usage Example
+
+```typescript
+import Management from './components/Management';
+import { Store, Product, Announcement } from './types';
+import { v4 as uuidv4 } from 'uuid';
+
+function App() {
+  const [stores, setStores] = useState<Store[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+
+  return (
+    <Management
+      stores={stores}
+      products={products}
+      announcements={announcements}
+      onAddStore={(store) => 
+        setStores([...stores, { ...store, id: uuidv4() }])
+      }
+      onUpdateStore={(store) =>
+        setStores(stores.map(s => s.id === store.id ? store : s))
+      }
+      onDeleteStore={(id) =>
+        setStores(stores.filter(s => s.id !== id))
+      }
+      onAddProduct={(product) =>
+        setProducts([...products, { ...product, id: uuidv4() }])
+      }
+      onUpdateProduct={(product) =>
+        setProducts(products.map(p => p.id === product.id ? product : p))
+      }
+      onDeleteProduct={(id) =>
+        setProducts(products.filter(p => p.id !== id))
+      }
+      onAddAnnouncement={(ann) =>
+        setAnnouncements([...announcements, { ...ann, id: uuidv4() }])
+      }
+      onUpdateAnnouncement={(ann) =>
+        setAnnouncements(announcements.map(a => a.id === ann.id ? ann : a))
+      }
+      onDeleteAnnouncement={(id) =>
+        setAnnouncements(announcements.filter(a => a.id !== id))
+      }
+    />
+  );
+}
+```
+
+## Product Form State
+
+Initial state for new products:
+
+```typescript
+const INITIAL_PRODUCT_STATE = {
+  name: '',
+  description: '',
+  price: 0,
+  unit: 'unidad' as UnitType,
+  category: '',
+  isPromotion: false,
+  promotionType: 'general' as PromotionType,
+  slogan: '',
+  imageUrl: '',
+  primaryColor: '#4f46e5'
+};
+```
+
+## Announcement Form State
+
+Initial state for new announcements:
+
+```typescript
+const INITIAL_ANN_STATE: Omit<Announcement, 'id'> = {
+  title: '',
+  message: '',
+  fontSize: 64,
+  fontFamily: 'font-bebas',
+  backgroundColor: '#1e293b',
+  textColor: '#ffffff',
+  textAlign: 'center',
+  hasAnimation: true
+};
+```
+
+## AI Features
+
+### Generate Slogan
+
+```typescript
+const handleGenerateSlogan = async () => {
+  if (!productForm.name) {
+    alert("Indica el nombre del producto.");
+    return;
+  }
+  setIsGeneratingSlogan(true);
+  const slogan = await generateSlogan(
+    productForm.name,
+    productForm.description
+  );
+  setProductForm(prev => ({ ...prev, slogan }));
+  setIsGeneratingSlogan(false);
+};
+```
+
+### Generate Image
+
+```typescript
+const handleGenerateImage = async () => {
+  if (!productForm.name) {
+    alert("Introduce un nombre de producto para generar una imagen.");
+    return;
+  }
+  setIsGeneratingImage(true);
+  const imageUrl = await generateProductImage(productForm.name);
+  if (imageUrl) {
+    setProductForm(prev => ({ ...prev, imageUrl }));
+  }
+  setIsGeneratingImage(false);
+};
+```
+
+### File Upload
+
+```typescript
+const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProductForm(prev => ({
+        ...prev,
+        imageUrl: reader.result as string
+      }));
+    };
+    reader.readAsDataURL(file);
+  }
+};
+```
+
+## Component State
+
+| State | Type | Description |
+|-------|------|-------------|
+| `activeTab` | `'products' \| 'stores' \| 'announcements'` | Currently active management tab |
+| `isGeneratingSlogan` | `boolean` | Loading state for AI slogan generation |
+| `isGeneratingImage` | `boolean` | Loading state for AI image generation |
+| `editingProductId` | `string \| null` | ID of product being edited |
+| `editingStoreId` | `string \| null` | ID of store being edited |
+| `editingAnnId` | `string \| null` | ID of announcement being edited |
+| `imgSourceMode` | `'url' \| 'upload' \| 'ai'` | Selected image input method |
+
+## Tab Interface
+
+The Management component provides a tabbed interface:
+
+1. **Products**: Create and manage product catalog
+2. **Announcements**: Create and manage custom announcements with live preview
+3. **Stores**: Create and manage store locations
+
+## Validation
+
+<Warning>
+**Required Fields**
+- Products: name, price, category are required
+- Announcements: title and message are required
+- Stores: name and address are required
+</Warning>
+
+## Best Practices
+
+<Tip>
+**Edit Mode**
+- Clicking edit on an item populates the form and scrolls to top
+- Cancel button appears when editing to reset the form
+- Form button text changes to indicate edit mode
+</Tip>
+
+<Tip>
+**Image Management**
+- AI image generation takes 15-30 seconds - show loading states
+- File uploads are converted to base64 data URIs for easy storage
+- URL mode allows linking to external images
+</Tip>
+
+## Related Services
+
+- [Gemini Service](/api/services/gemini-service) - Provides AI generation features
+
+## Related Types
+
+- [Product](/api/types/product)
+- [Announcement](/api/types/announcement)
+- [Store](/api/types/store)
+
+## Related Components
+
+- [Dashboard Component](/api/components/dashboard) - Displays managed content

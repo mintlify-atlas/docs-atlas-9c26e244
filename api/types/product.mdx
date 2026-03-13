@@ -1,0 +1,106 @@
+---
+title: "Product"
+description: "Product type definition for retail items and promotions"
+---
+
+## Overview
+
+The `Product` interface represents a retail product in the advertising system. Products can be regular items or promotional offers with special pricing and marketing features.
+
+## Type Definition
+
+```typescript
+export type UnitType = 'unidad' | 'kg' | 'g' | 'litro' | 'pack';
+export type PromotionType = 'dia' | 'semana' | 'general';
+
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  unit: UnitType;
+  imageUrl?: string;
+  category: string;
+  isPromotion: boolean;
+  promotionType?: PromotionType;
+  slogan?: string;
+  primaryColor?: string; // Hex code for the ad theme
+}
+```
+
+## Properties
+
+<ResponseField name="id" type="string" required>
+  Unique identifier for the product
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Display name of the product
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Detailed description of the product
+</ResponseField>
+
+<ResponseField name="price" type="number" required>
+  Product price as a numeric value
+</ResponseField>
+
+<ResponseField name="unit" type="UnitType" required>
+  Unit of measurement for the product. Can be one of: `'unidad'`, `'kg'`, `'g'`, `'litro'`, or `'pack'`
+</ResponseField>
+
+<ResponseField name="imageUrl" type="string">
+  Optional URL or data URI for the product image
+</ResponseField>
+
+<ResponseField name="category" type="string" required>
+  Product category for organization and filtering
+</ResponseField>
+
+<ResponseField name="isPromotion" type="boolean" required>
+  Whether this product is currently on promotion
+</ResponseField>
+
+<ResponseField name="promotionType" type="PromotionType">
+  Type of promotion when `isPromotion` is true. Can be `'dia'` (daily), `'semana'` (weekly), or `'general'`
+</ResponseField>
+
+<ResponseField name="slogan" type="string">
+  Optional marketing slogan for the product advertisement
+</ResponseField>
+
+<ResponseField name="primaryColor" type="string">
+  Optional hex color code (e.g., `#FF5733`) for theming the product advertisement
+</ResponseField>
+
+## Usage Example
+
+```typescript
+const product: Product = {
+  id: 'prod-001',
+  name: 'Premium Coffee Beans',
+  description: 'Arabica coffee beans from Colombia',
+  price: 1299,
+  unit: 'kg',
+  imageUrl: 'https://example.com/coffee.jpg',
+  category: 'Beverages',
+  isPromotion: true,
+  promotionType: 'semana',
+  slogan: '¡Café de calidad superior!',
+  primaryColor: '#8B4513'
+};
+```
+
+## Promotion Types
+
+| Type | Description |
+|------|-------------|
+| `dia` | Daily promotion - special offer for today |
+| `semana` | Weekly promotion - special offer for the week |
+| `general` | General promotion - standard promotional pricing |
+
+## Related Types
+
+- [DisplayItem](/api/types/display-item) - Products are displayed using DisplayItem references
+- [Store](/api/types/store) - Products are displayed at specific store locations

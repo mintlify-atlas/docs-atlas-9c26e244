@@ -1,0 +1,323 @@
+---
+title: Announcement Creation
+description: Create custom announcements with live preview, custom fonts, colors, and styling
+icon: megaphone
+---
+
+## Overview
+
+Announcements allow you to create custom messages for store hours, special events, policy changes, or any information that doesn't fit the product format. The announcement editor provides real-time preview and complete control over typography and design.
+
+## Announcement Data Structure
+
+Each announcement contains the following configuration:
+
+```typescript
+export interface Announcement {
+  id: string;
+  title: string;                          // Internal reference name
+  message: string;                        // Display message
+  fontSize: number;                       // in pixels (20-200)
+  fontFamily: FontType;                   // 'font-bebas' | 'font-sans' | 'font-serif' | 'font-mono'
+  backgroundColor: string;                // Hex color code
+  textColor: string;                      // Hex color code
+  textAlign: 'left' | 'center' | 'right';
+  hasAnimation: boolean;                  // Enable shine effect
+}
+```
+
+## Creating Announcements
+
+<Steps>
+  <Step title="Navigate to Announcements">
+    Open the Management section and select the **Avisos Libres** tab.
+  </Step>
+  
+  <Step title="Enter Title & Message">
+    Add an internal title for organization and write your announcement message.
+  </Step>
+  
+  <Step title="Choose Typography">
+    Select a font family and adjust the size using the slider (20-200px).
+  </Step>
+  
+  <Step title="Set Colors">
+    Choose background and text colors using the color pickers.
+  </Step>
+  
+  <Step title="Configure Alignment">
+    Select left, center, or right text alignment.
+  </Step>
+  
+  <Step title="Preview & Save">
+    Review the real-time preview and click **Guardar Aviso** to save.
+  </Step>
+</Steps>
+
+## Typography Options
+
+PromoMaster Pro offers four distinct font families optimized for display advertising:
+
+<Tabs>
+  <Tab title="Bebas (Impact)">
+    **Impactante** - Bold, condensed uppercase font perfect for attention-grabbing headlines.
+    
+    ```typescript
+    fontFamily: 'font-bebas'
+    ```
+    
+    <Note>Recommended for promotional announcements and urgent messages.</Note>
+  </Tab>
+  
+  <Tab title="Inter (Clean)">
+    **Limpio** - Modern sans-serif font with excellent readability at all sizes.
+    
+    ```typescript
+    fontFamily: 'font-sans'
+    ```
+    
+    <Note>Best for informational messages and store hours.</Note>
+  </Tab>
+  
+  <Tab title="Serif (Elegant)">
+    **Elegante** - Classic serif font for sophisticated, premium messaging.
+    
+    ```typescript
+    fontFamily: 'font-serif'
+    ```
+    
+    <Note>Ideal for high-end product announcements or formal notices.</Note>
+  </Tab>
+  
+  <Tab title="Mono (Technical)">
+    **Técnico** - Monospace font for technical information or modern aesthetic.
+    
+    ```typescript
+    fontFamily: 'font-mono'
+    ```
+    
+    <Note>Great for dates, times, and structured information.</Note>
+  </Tab>
+</Tabs>
+
+## Font Size Configuration
+
+Adjust text size dynamically with a responsive slider:
+
+```tsx
+<div className="flex items-center gap-3 mt-2">
+  <input 
+    type="range" 
+    min="20" 
+    max="200" 
+    value={annForm.fontSize} 
+    onChange={e => setAnnForm({...annForm, fontSize: Number(e.target.value)})}
+  />
+  <span className="font-bold">{annForm.fontSize}px</span>
+</div>
+```
+
+<Tip>
+Font sizes scale proportionally in the display. The preview shows approximately 1/3 scale of the actual display size.
+</Tip>
+
+## Color Customization
+
+### Background Color
+Set the announcement background using a color picker:
+
+```tsx
+<input 
+  type="color" 
+  value={annForm.backgroundColor} 
+  onChange={e => setAnnForm({...annForm, backgroundColor: e.target.value})}
+/>
+```
+
+Default: `#1e293b` (dark slate)
+
+### Text Color
+Choose text color for optimal contrast and readability:
+
+```tsx
+<input 
+  type="color" 
+  value={annForm.textColor} 
+  onChange={e => setAnnForm({...annForm, textColor: e.target.value})}
+/>
+```
+
+Default: `#ffffff` (white)
+
+<Warning>
+Ensure sufficient contrast between background and text colors for readability at distance.
+</Warning>
+
+## Text Alignment
+
+Control message alignment with three options:
+
+```tsx
+{(['left', 'center', 'right'] as const).map(align => (
+  <button 
+    type="button" 
+    onClick={() => setAnnForm({...annForm, textAlign: align})}
+  >
+    {align === 'left' ? <AlignLeft /> : 
+     align === 'center' ? <AlignCenter /> : 
+     <AlignRight />}
+  </button>
+))}
+```
+
+<CardGroup cols={3}>
+  <Card title="Left Align" icon="align-left">
+    Text flows from the left edge. Best for longer messages.
+  </Card>
+  <Card title="Center Align" icon="align-center">
+    Text centered horizontally. Ideal for headlines and short messages.
+  </Card>
+  <Card title="Right Align" icon="align-right">
+    Text flows from the right edge. Creates unique visual interest.
+  </Card>
+</CardGroup>
+
+## Real-Time Preview
+
+The announcement editor includes a live preview that updates as you type and adjust settings:
+
+```tsx
+<div 
+  className="aspect-[16/10] flex items-center justify-center rounded-3xl"
+  style={{ backgroundColor: annForm.backgroundColor }}
+>
+  {annForm.hasAnimation && <div className="shine-effect"></div>}
+  <div 
+    className={`${annForm.fontFamily}`}
+    style={{ 
+      fontSize: `${annForm.fontSize / 3}px`, 
+      color: annForm.textColor, 
+      textAlign: annForm.textAlign 
+    }}
+  >
+    {annForm.message || 'Tu mensaje aparecerá aquí...'}
+  </div>
+</div>
+```
+
+<Note>
+The preview displays at approximately 1/3 scale. Actual display size is much larger for screen visibility.
+</Note>
+
+## Animation Effects
+
+Announcements include an optional shine animation effect:
+
+```tsx
+{annForm.hasAnimation && (
+  <div className="absolute inset-0 bg-white/5 opacity-20 shine-effect"></div>
+)}
+```
+
+The shine effect adds visual interest and draws attention to the message during display.
+
+## Display Behavior
+
+When an announcement is shown in full-screen display mode:
+
+```tsx
+<div 
+  className={`w-full max-w-6xl p-16 md:p-24 rounded-[4rem] backdrop-blur-xl`}
+  style={{ backgroundColor: `${announcement.backgroundColor}DD` }}
+>
+  <div className="mb-12 inline-flex items-center gap-6">
+    <Megaphone className="text-white animate-bounce" size={40} />
+    <span className="text-2xl font-black text-white">{store.name}</span>
+  </div>
+
+  <div 
+    className={`${announcement.fontFamily} leading-[1.05]`}
+    style={{ 
+      fontSize: `${announcement.fontSize}px`, 
+      color: announcement.textColor,
+      textAlign: announcement.textAlign
+    }}
+  >
+    {announcement.message}
+  </div>
+</div>
+```
+
+### Display Features
+- Store name badge with animated megaphone icon
+- Full backdrop blur effect for depth
+- Responsive padding for all screen sizes
+- Drop shadow for text legibility
+
+## Editing Announcements
+
+Click the edit icon on any saved announcement to load it back into the editor:
+
+```tsx
+const handleEditAnn = (ann: Announcement) => {
+  setEditingAnnId(ann.id);
+  setAnnForm({ ...ann });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+```
+
+The form automatically switches to update mode with a **Actualizar Aviso** button.
+
+## Deleting Announcements
+
+Remove announcements by clicking the trash icon. 
+
+<Warning>
+Deletion is permanent. Ensure the announcement is not in any active playlists before removing.
+</Warning>
+
+## Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Store Hours" icon="clock">
+    **Summer Hours:** Open 8am - 10pm Daily
+    
+    Use clean sans-serif font with center alignment.
+  </Card>
+  
+  <Card title="Special Events" icon="calendar">
+    **Grand Opening Saturday!**
+    
+    Use Bebas font with bold colors and large sizing.
+  </Card>
+  
+  <Card title="Policy Updates" icon="shield-check">
+    **New Return Policy: 30 Days**
+    
+    Use serif font for professional appearance.
+  </Card>
+  
+  <Card title="Seasonal Greetings" icon="sparkles">
+    **Happy Holidays from Our Family**
+    
+    Use elegant fonts with festive colors.
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Accordion title="Keep Messages Concise">
+Limit announcements to 1-2 sentences for maximum readability at distance. Longer messages may be difficult to read in the time allocated.
+</Accordion>
+
+<Accordion title="High Contrast Colors">
+Use dark backgrounds with light text or vice versa. Avoid low-contrast combinations like light gray on white.
+</Accordion>
+
+<Accordion title="Font Selection">
+Match font style to message tone. Urgent messages use Bebas, informational use Sans, premium use Serif.
+</Accordion>
+
+<Accordion title="Test Preview">
+Always review the real-time preview before saving to ensure the announcement appears as intended.
+</Accordion>

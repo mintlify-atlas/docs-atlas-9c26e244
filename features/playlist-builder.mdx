@@ -1,0 +1,503 @@
+---
+title: Playlist Builder
+description: Create custom sequences mixing products and announcements with drag-and-drop ordering
+icon: list-ordered
+---
+
+## Overview
+
+The Playlist Builder in the Dashboard allows you to create custom sequences of products and announcements that play in order during display mode. Mix content types, reorder items, and launch targeted advertising campaigns.
+
+## Playlist Data Structure
+
+Playlists are arrays of display items that reference products or announcements:
+
+```typescript
+export interface DisplayItem {
+  type: 'product' | 'announcement';
+  id: string;  // References Product.id or Announcement.id
+}
+```
+
+```typescript
+const [playlist, setPlaylist] = useState<DisplayItem[]>([]);
+```
+
+<Note>
+Display items store only the type and ID. Full data is resolved when rendering or launching displays.
+</Note>
+
+## Dashboard Interface
+
+The Dashboard provides three tabs for content management:
+
+```tsx
+<div className="flex gap-2 bg-slate-200/50 p-1.5 rounded-2xl">
+  <button 
+    onClick={() => setActiveTab('products')}
+    className={activeTab === 'products' ? 'bg-white text-indigo-600' : 'text-slate-500'}
+  >
+    <Tag size={18} /> Productos
+  </button>
+  <button 
+    onClick={() => setActiveTab('announcements')}
+    className={activeTab === 'announcements' ? 'bg-white text-indigo-600' : 'text-slate-500'}
+  >
+    <Megaphone size={18} /> Avisos Libres
+  </button>
+  <button 
+    onClick={() => setActiveTab('playlist')}
+    className={activeTab === 'playlist' ? 'bg-indigo-600 text-white' : 'text-slate-500'}
+  >
+    <ListOrdered size={18} /> Mi Secuencia
+    {playlist.length > 0 && (
+      <span className="badge">{playlist.length}</span>
+    )}
+  </button>
+</div>
+```
+
+## Adding Items to Playlist
+
+### Single Item Addition
+
+Click the + button on any product or announcement card:
+
+```tsx
+const addToPlaylist = (item: DisplayItem) => {
+  setPlaylist(prev => [...prev, item]);
+};
+
+<button 
+  onClick={() => addToPlaylist({ type: 'product', id: product.id })}
+  title="Añadir a secuencia"
+>
+  <Plus size={20} />
+</button>
+```
+
+### Bulk Addition
+
+Add all products and announcements at once:
+
+```tsx
+const addAllToPlaylist = () => {
+  const allProducts: DisplayItem[] = products.map(p => ({ 
+    type: 'product', 
+    id: p.id 
+  }));
+  const allAnns: DisplayItem[] = announcements.map(a => ({ 
+    type: 'announcement', 
+    id: a.id 
+  }));
+  setPlaylist([...allProducts, ...allAnns]);
+  setActiveTab('playlist');
+};
+
+<button onClick={addAllToPlaylist}>
+  <Plus size={18} /> Añadir Todo a Secuencia
+</button>
+```
+
+<Tip>
+Bulk addition automatically switches to the playlist tab so you can review and reorder items.
+</Tip>
+
+## Playlist Management
+
+### Viewing the Playlist
+
+The playlist tab shows all queued items in order:
+
+```tsx
+<div className="space-y-3">
+  {playlist.map((item, index) => {
+    const data = item.type === 'product' 
+      ? products.find(p => p.id === item.id) 
+      : announcements.find(a => a.id === item.id);
+    if (!data) return null;
+
+    return (
+      <div key={`${item.id}-${index}`} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl">
+        <div className="text-xs font-black text-slate-300 w-6">{index + 1}</div>
+        <div className="w-12 h-12 rounded-xl">
+          {item.type === 'product' ? (
+            <img src={(data as Product).imageUrl} />
+          ) : (
+            <Megaphone size={18} />
+          )}
+        </div>
+        <div className="flex-1">
+          <div className="font-bold">
+            {item.type === 'product' ? (data as Product).name : (data as Announcement).title}
+          </div>
+          <div className="text-[10px] uppercase">
+            {item.type === 'product' ? 'Producto' : 'Aviso Libre'}
+          </div>
+        </div>
+      </div>
+    );
+  })}
+</div>
+```
+
+### Reordering Items
+
+Move items up or down in the sequence:
+
+```tsx
+const movePlaylistItem = (index: number, direction: 'up' | 'down') => {
+  const newPlaylist = [...playlist];
+  const targetIndex = direction === 'up' ? index - 1 : index + 1;
+  if (targetIndex < 0 || targetIndex >= newPlaylist.length) return;
+  [newPlaylist[index], newPlaylist[targetIndex]] = 
+    [newPlaylist[targetIndex], newPlaylist[index]];
+  setPlaylist(newPlaylist);
+};
+
+<button onClick={() => movePlaylistItem(index, 'up')}>
+  <ArrowUp size={16} />
+</button>
+<button onClick={() => movePlaylistItem(index, 'down')}>
+  <ArrowDown size={16} />
+</button>
+```
+
+<Note>
+Reordering is disabled for first item (can't move up) and last item (can't move down).
+</Note>
+
+### Removing Items
+
+Delete individual items from the playlist:
+
+```tsx
+const removeFromPlaylist = (index: number) => {
+  setPlaylist(prev => prev.filter((_, i) => i !== index));
+};
+
+<button onClick={() => removeFromPlaylist(index)}>
+  <X size={16} />
+</button>
+```
+
+### Clearing Playlist
+
+Remove all items at once:
+
+```tsx
+<button onClick={() => setPlaylist([])}>
+  Vaciar
+</button>
+```
+
+## Mixed Content Sequences
+
+Playlists can contain any combination of products and announcements:
+
+```typescript
+const examplePlaylist: DisplayItem[] = [
+  { type: 'product', id: 'prod-001' },      // Product
+  { type: 'product', id: 'prod-002' },      // Product
+  { type: 'announcement', id: 'ann-001' },  // Announcement
+  { type: 'product', id: 'prod-003' },      // Product
+  { type: 'announcement', id: 'ann-002' }   // Announcement
+];
+```
+
+<Tabs>
+  <Tab title="Product-Heavy">
+    Use mostly products with occasional announcements:
+    
+    - 🍎 Product
+    - 🍎 Product
+    - 🍎 Product
+    - 📢 Announcement
+    - 🍎 Product
+    - 🍎 Product
+    
+    Best for promotional campaigns focused on specific items.
+  </Tab>
+  
+  <Tab title="Balanced Mix">
+    Alternate between products and information:
+    
+    - 🍎 Product
+    - 📢 Announcement
+    - 🍎 Product
+    - 📢 Announcement
+    
+    Ideal for combining sales with store information.
+  </Tab>
+  
+  <Tab title="Info-Focused">
+    Use announcements as primary content:
+    
+    - 📢 Store Hours
+    - 📢 Special Event
+    - 🍎 Featured Product
+    - 📢 Policy Update
+    
+    Perfect for informational displays with minimal product focus.
+  </Tab>
+</Tabs>
+
+## Launching Displays
+
+### Launch Full Playlist
+
+Start display mode with entire playlist sequence:
+
+```tsx
+const handleLaunchAllMixed = () => {
+  if (playlist.length > 0 && selectedStore) {
+    onStartDisplay(playlist, selectedStore, duration);
+  }
+};
+
+<button 
+  disabled={playlist.length === 0}
+  onClick={handleLaunchAllMixed}
+>
+  <MonitorPlay size={20} /> Iniciar Transmisión
+</button>
+```
+
+<Warning>
+Ensure a store is selected and at least one item is in the playlist before launching.
+</Warning>
+
+### Launch Single Item
+
+Quickly display one product or announcement:
+
+```tsx
+const handleLaunchItemNow = (item: DisplayItem) => {
+  onStartDisplay([item], selectedStore, duration);
+};
+
+<button onClick={() => handleLaunchItemNow({ type: 'product', id: product.id })}>
+  <Play size={20} fill="currentColor" />
+</button>
+```
+
+<Tip>
+Launching a single item bypasses the playlist and starts display mode immediately.
+</Tip>
+
+## Search & Filter
+
+Find products and announcements quickly:
+
+```tsx
+const [searchTerm, setSearchTerm] = useState('');
+
+const filteredProducts = products.filter(p => 
+  p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  p.category.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+const filteredAnnouncements = announcements.filter(a =>
+  a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  a.message.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+<input 
+  type="text" 
+  placeholder="Buscar en productos..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+/>
+```
+
+Search works across:
+- Product names and categories
+- Announcement titles and messages
+
+## Duration Configuration
+
+Set how long each item displays:
+
+```tsx
+const [duration, setDuration] = useState(defaultDuration);
+
+<div className="flex items-center gap-2">
+  <Clock size={16} />
+  <span>Segundos</span>
+  <input 
+    type="number" 
+    min="1" 
+    value={duration}
+    onChange={(e) => setDuration(Math.max(1, parseInt(e.target.value) || 1))}
+  />
+</div>
+```
+
+Duration applies to all items in the playlist equally.
+
+<Note>
+Duration must be at least 1 second. The system enforces this minimum automatically.
+</Note>
+
+## Empty State Handling
+
+When playlist is empty, show helpful guidance:
+
+```tsx
+{playlist.length === 0 ? (
+  <div className="py-20 text-center space-y-4">
+    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto">
+      <ListOrdered size={40} />
+    </div>
+    <p className="text-slate-400">Tu secuencia está vacía. Añade items desde las otras pestañas.</p>
+    <button onClick={addAllToPlaylist}>
+      Añadir todo el catálogo
+    </button>
+  </div>
+) : (
+  // Render playlist items
+)}
+```
+
+## Product Card Features
+
+Product cards in the Dashboard show:
+
+```tsx
+<div className="group bg-white rounded-[2.5rem] overflow-hidden">
+  <div className="aspect-square relative">
+    <img src={product.imageUrl} className="group-hover:scale-110" />
+    <div className="opacity-0 group-hover:opacity-100">
+      <button onClick={() => handleLaunchItemNow({ type: 'product', id: product.id })}>
+        <Play size={20} />
+      </button>
+    </div>
+  </div>
+  <div className="p-6">
+    <h4 className="font-black">{product.name}</h4>
+    <p className="text-xs uppercase">{product.category}</p>
+    <div className="flex items-center justify-between pt-4">
+      <div className="text-2xl font-black">$ {product.price.toLocaleString()}</div>
+      <button onClick={() => addToPlaylist({ type: 'product', id: product.id })}>
+        <Plus size={20} />
+      </button>
+    </div>
+  </div>
+</div>
+```
+
+Interactions available:
+- **Hover**: Reveals play and add buttons
+- **Play**: Launch immediately in display mode
+- **Plus**: Add to current playlist
+
+## Announcement Card Features
+
+Announcement cards show:
+
+```tsx
+<div className="bg-white p-8 rounded-[2.5rem] group">
+  <div className="flex items-center justify-between mb-6">
+    <div 
+      className="w-16 h-16 rounded-[1.5rem] flex items-center justify-center"
+      style={{ backgroundColor: ann.backgroundColor }}
+    >
+      <Megaphone size={32} />
+    </div>
+    <div className="flex gap-2 opacity-0 group-hover:opacity-100">
+      <button onClick={() => handleLaunchItemNow({ type: 'announcement', id: ann.id })}>
+        <Play size={20} />
+      </button>
+      <button onClick={() => addToPlaylist({ type: 'announcement', id: ann.id })}>
+        <Plus size={20} />
+      </button>
+    </div>
+  </div>
+  <h4 className="text-2xl font-black">{ann.title}</h4>
+  <p className="text-slate-500 line-clamp-3">{ann.message}</p>
+  <div className="flex gap-2 mt-6">
+    <div className="badge">{ann.fontFamily.replace('font-', '')}</div>
+    <div className="badge">{ann.fontSize}px</div>
+  </div>
+</div>
+```
+
+## Store Selection Context
+
+Playlist launching requires store context:
+
+```tsx
+const [selectedStore, setSelectedStore] = useState<string>(stores[0]?.id || '');
+
+<select 
+  value={selectedStore}
+  onChange={(e) => setSelectedStore(e.target.value)}
+>
+  {stores.map(s => (
+    <option key={s.id} value={s.id}>{s.name}</option>
+  ))}
+</select>
+```
+
+The selected store determines:
+- Store name shown in displays
+- Address information in product displays
+- Ticker messages
+
+## Use Case Examples
+
+<CardGroup cols={2}>
+  <Card title="Daily Specials" icon="calendar-days">
+    Create a playlist of today's promotional items:
+    
+    - Morning announcement
+    - Featured breakfast items
+    - Lunch specials
+    - Evening announcement
+  </Card>
+  
+  <Card title="Seasonal Campaign" icon="snowflake">
+    Build holiday-themed sequences:
+    
+    - Holiday greeting announcement
+    - Seasonal products
+    - Gift ideas
+    - Store hours announcement
+  </Card>
+  
+  <Card title="Department Focus" icon="tag">
+    Highlight specific categories:
+    
+    - Produce section intro
+    - Fresh fruits
+    - Vegetables
+    - Organic options
+  </Card>
+  
+  <Card title="New Arrivals" icon="sparkles">
+    Showcase latest inventory:
+    
+    - "New This Week" announcement
+    - New product 1
+    - New product 2
+    - New product 3
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Accordion title="Strategic Ordering">
+Place high-priority items early in the sequence when customer attention is highest. End with strong call-to-action announcements.
+</Accordion>
+
+<Accordion title="Playlist Length">
+Keep playlists to 5-15 items for most scenarios. Longer sequences may lose viewer attention before cycling.
+</Accordion>
+
+<Accordion title="Content Balance">
+Mix products and announcements for variety. Too many products can feel overwhelming; too many announcements can lack impact.
+</Accordion>
+
+<Accordion title="Regular Updates">
+Refresh playlists frequently to reflect current inventory, promotions, and seasonal changes.
+</Accordion>

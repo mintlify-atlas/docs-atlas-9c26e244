@@ -1,0 +1,268 @@
+---
+title: "AI Slogan Generation"
+description: "Generate compelling marketing slogans using Google Gemini AI"
+---
+
+## Overview
+
+The slogan generation feature uses Google's Gemini AI to create short, impactful marketing messages for your products. Simply provide a product name and description, and the AI generates a catchy slogan optimized for retail advertising.
+
+## Function Signature
+
+Here's the actual implementation from `geminiService.ts`:
+
+```typescript
+export const generateSlogan = async (
+  productName: string,
+  description: string
+): Promise<string> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: `Genera un eslogan de marketing corto (máximo 5 palabras), impactante y llamativo para un producto llamado "${productName}" que se describe como: "${description}". Responde solo con el texto del eslogan.`,
+    });
+    return response.text?.trim() || "¡La mejor oferta para vos!";
+  } catch (error) {
+    console.error("Error generating slogan:", error);
+    return "¡Calidad garantizada!";
+  }
+};
+```
+
+## How It Works
+
+<Steps>
+  <Step title="Collect Product Information">
+    The function takes two parameters:
+    - `productName`: The name of your product
+    - `description`: A brief description of the product's features
+  </Step>
+
+  <Step title="Generate AI Prompt">
+    The system constructs a prompt in Spanish that instructs the AI to:
+    - Create a short slogan (maximum 5 words)
+    - Make it impactful and attention-grabbing
+    - Base it on the product name and description
+    - Return only the slogan text
+  </Step>
+
+  <Step title="Process AI Response">
+    The AI generates the slogan and returns it. If successful, the text is trimmed and returned. If there's an error, a fallback slogan is provided.
+  </Step>
+</Steps>
+
+## Usage Examples
+
+### Basic Usage
+
+```typescript
+import { generateSlogan } from './services/geminiService';
+
+const slogan = await generateSlogan(
+  "Premium Coffee",
+  "Organic, fair-trade beans roasted daily"
+);
+// Result: "¡Café que despierta!"
+```
+
+### In React Components
+
+Here's how it's used in the `Management.tsx` component:
+
+```typescript
+const [isGeneratingSlogan, setIsGeneratingSlogan] = useState(false);
+
+const handleGenerateSlogan = async () => {
+  if (!productForm.name) {
+    alert("Indica el nombre del producto.");
+    return;
+  }
+  
+  setIsGeneratingSlogan(true);
+  const slogan = await generateSlogan(
+    productForm.name,
+    productForm.description
+  );
+  setProductForm(prev => ({ ...prev, slogan }));
+  setIsGeneratingSlogan(false);
+};
+```
+
+### With Error Handling
+
+```typescript
+try {
+  const slogan = await generateSlogan(
+    "Chocolate Premium",
+    "Belgian chocolate with 70% cocoa"
+  );
+  console.log("Generated slogan:", slogan);
+} catch (error) {
+  console.error("Failed to generate slogan:", error);
+  // Fallback slogan will be returned automatically
+}
+```
+
+## UI Integration
+
+The slogan generator is integrated into the product management form:
+
+<Steps>
+  <Step title="Enter Product Details">
+    Users fill in the product name and description in the management interface.
+  </Step>
+
+  <Step title="Click AI Button">
+    A sparkle icon button triggers the AI generation:
+
+    ```typescript
+    <button 
+      type="button" 
+      onClick={handleGenerateSlogan}
+      className="p-3 bg-amber-100 text-amber-600 rounded-xl"
+    >
+      {isGeneratingSlogan ? (
+        <Loader2 className="animate-spin" size={20} />
+      ) : (
+        <Sparkles size={20} />
+      )}
+    </button>
+    ```
+  </Step>
+
+  <Step title="View Generated Slogan">
+    The AI-generated slogan automatically populates the slogan textarea field.
+  </Step>
+</Steps>
+
+## AI Prompt Template
+
+The system uses this prompt structure:
+
+```text
+Genera un eslogan de marketing corto (máximo 5 palabras), 
+impactante y llamativo para un producto llamado "{productName}" 
+que se describe como: "{description}".
+Responde solo con el texto del eslogan.
+```
+
+<Tip>
+  The prompt is in Spanish because PromoMaster Pro is designed for Spanish-speaking retail markets. You can modify the prompt in `geminiService.ts` to support other languages.
+</Tip>
+
+## Fallback Behavior
+
+The function includes automatic fallback handling:
+
+<CardGroup cols={2}>
+  <Card title="Primary Fallback" icon="shield">
+    If the AI response is empty: **"¡La mejor oferta para vos!"**
+  </Card>
+  <Card title="Error Fallback" icon="exclamation-triangle">
+    If the API call fails: **"¡Calidad garantizada!"**
+  </Card>
+</CardGroup>
+
+<Note>
+  Fallback slogans ensure your application continues working smoothly even when the AI service is unavailable.
+</Note>
+
+## Best Practices
+
+### Provide Detailed Descriptions
+
+```typescript
+// Good - Detailed description
+await generateSlogan(
+  "Organic Honey",
+  "Pure wildflower honey from local beekeepers, raw and unfiltered"
+);
+
+// Less effective - Vague description
+await generateSlogan(
+  "Honey",
+  "Sweet"
+);
+```
+
+### Handle Loading States
+
+Always show loading indicators during AI generation:
+
+```typescript
+const [loading, setLoading] = useState(false);
+
+const generate = async () => {
+  setLoading(true);
+  try {
+    const slogan = await generateSlogan(name, description);
+    setSloganText(slogan);
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+### Validate Inputs
+
+```typescript
+if (!productName.trim()) {
+  throw new Error("Product name is required");
+}
+
+if (productName.length < 3) {
+  throw new Error("Product name too short");
+}
+```
+
+## Performance Considerations
+
+- **Response Time**: Typically 1-3 seconds per generation
+- **Rate Limits**: Depends on your Google AI API tier
+- **Caching**: Consider caching generated slogans to avoid redundant API calls
+
+<Warning>
+  Don't call this function in tight loops or on every keystroke. Use debouncing or trigger generation only on explicit user action.
+</Warning>
+
+## Customization
+
+To customize the slogan generation:
+
+### Change Language
+
+```typescript
+const response = await ai.models.generateContent({
+  model: 'gemini-3-flash-preview',
+  contents: `Generate a short marketing slogan (max 5 words) for a product called "${productName}" described as: "${description}". Return only the slogan text.`,
+});
+```
+
+### Adjust Length
+
+```typescript
+const response = await ai.models.generateContent({
+  model: 'gemini-3-flash-preview',
+  contents: `Genera un eslogan de marketing corto (máximo 3 palabras)...`,
+});
+```
+
+### Change Tone
+
+```typescript
+const response = await ai.models.generateContent({
+  model: 'gemini-3-flash-preview',
+  contents: `Genera un eslogan de marketing profesional y elegante...`,
+});
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Generate Images" icon="image" href="/ai/image-generation">
+    Learn how to generate product images with AI
+  </Card>
+  <Card title="API Setup" icon="key" href="/ai/setup">
+    Configure your Google Gemini API key
+  </Card>
+</CardGroup>

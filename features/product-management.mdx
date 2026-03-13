@@ -1,0 +1,274 @@
+---
+title: Product Management
+description: Manage your product catalog with images, pricing, promotions, and AI-powered features
+icon: apple
+---
+
+## Overview
+
+The Product Management system allows you to build and maintain a complete catalog of retail products with rich media, pricing, promotional configurations, and AI-generated content.
+
+## Product Data Structure
+
+Every product in PromoMaster Pro contains the following information:
+
+```typescript
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  unit: UnitType;              // 'unidad' | 'kg' | 'g' | 'litro' | 'pack'
+  imageUrl?: string;
+  category: string;
+  isPromotion: boolean;
+  promotionType?: PromotionType; // 'dia' | 'semana' | 'general'
+  slogan?: string;
+  primaryColor?: string;         // Hex code for the ad theme
+}
+```
+
+## Creating Products
+
+<Steps>
+  <Step title="Navigate to Product Management">
+    Open the Management section and select the **Products** tab.
+  </Step>
+  
+  <Step title="Enter Product Details">
+    Fill in the product name, price, unit type, and category.
+  </Step>
+  
+  <Step title="Add Product Image">
+    Choose one of three image sources:
+    - **URL**: Paste a direct image link
+    - **Upload**: Select a file from your device
+    - **AI**: Generate an image automatically using AI
+  </Step>
+  
+  <Step title="Configure Promotions (Optional)">
+    Enable "ES UNA OFERTA" and select the promotion type.
+  </Step>
+  
+  <Step title="Save Product">
+    Click **Crear Producto** to add it to your catalog.
+  </Step>
+</Steps>
+
+## Pricing & Units
+
+### Supported Unit Types
+
+Products can be priced by different unit measurements:
+
+<CardGroup cols={3}>
+  <Card title="Unidad" icon="1">
+    Individual items or single units
+  </Card>
+  <Card title="Peso" icon="weight-scale">
+    Kilogram (kg) or Grams (g)
+  </Card>
+  <Card title="Volumen & Packs" icon="box">
+    Litro or multi-item packs
+  </Card>
+</CardGroup>
+
+### Pricing Configuration
+
+```tsx
+<input 
+  type="number" 
+  value={productForm.price} 
+  onChange={e => setProductForm({...productForm, price: Number(e.target.value)})}
+/>
+
+<select 
+  value={productForm.unit} 
+  onChange={e => setProductForm({...productForm, unit: e.target.value as UnitType})}
+>
+  <option value="unidad">Unidad</option>
+  <option value="kg">Kilo</option>
+  <option value="g">Gramos</option>
+  <option value="litro">Litro</option>
+  <option value="pack">Pack</option>
+</select>
+```
+
+## Promotion Types
+
+PromoMaster Pro supports three types of promotional offerings:
+
+<Tabs>
+  <Tab title="General Offer">
+    **Oferta General** - Standard promotions without time constraints. Perfect for clearance items or ongoing special pricing.
+    
+    ```typescript
+    promotionType: 'general'
+    ```
+  </Tab>
+  
+  <Tab title="Daily Deal">
+    **Oferta del Día** - Time-sensitive daily promotions. Displays "¡OFERTA DEL DÍA!" badge on the display.
+    
+    ```typescript
+    promotionType: 'dia'
+    ```
+  </Tab>
+  
+  <Tab title="Weekly Special">
+    **Oferta Semanal** - Week-long promotional campaigns. Shows "¡OFERTA DE LA SEMANA!" badge.
+    
+    ```typescript
+    promotionType: 'semana'
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+Promotion badges are automatically displayed in both the product list and full-screen display mode with animated effects.
+</Note>
+
+## Image Management
+
+### Three Image Source Options
+
+#### URL Method
+Paste a direct link to an image hosted online:
+
+```tsx
+<input 
+  type="text" 
+  placeholder="https://ejemplo.com/foto.jpg" 
+  value={productForm.imageUrl}
+  onChange={e => setProductForm({...productForm, imageUrl: e.target.value})}
+/>
+```
+
+#### Upload Method
+Upload images directly from your device. Images are converted to base64 data URLs:
+
+```tsx
+const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProductForm(prev => ({ ...prev, imageUrl: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  }
+};
+```
+
+#### AI Generation
+Generate product images using AI based on the product name:
+
+```tsx
+const handleGenerateImage = async () => {
+  if (!productForm.name) {
+    alert("Introduce un nombre de producto para generar una imagen.");
+    return;
+  }
+  setIsGeneratingImage(true);
+  const imageUrl = await generateProductImage(productForm.name);
+  if (imageUrl) setProductForm(prev => ({ ...prev, imageUrl }));
+  setIsGeneratingImage(false);
+};
+```
+
+<Warning>
+AI image generation requires a product name to be entered first.
+</Warning>
+
+## AI-Powered Slogans
+
+Generate compelling advertising slogans automatically using AI:
+
+```tsx
+<button 
+  type="button" 
+  onClick={async () => {
+    if(!productForm.name) return alert("Indica el nombre del producto.");
+    setIsGeneratingSlogan(true);
+    const s = await generateSlogan(productForm.name, productForm.description);
+    setProductForm(prev => ({ ...prev, slogan: s }));
+    setIsGeneratingSlogan(false);
+  }}
+>
+  {isGeneratingSlogan ? <Loader2 className="animate-spin" /> : <Sparkles />}
+</button>
+```
+
+<Tip>
+AI-generated slogans are displayed prominently in the full-screen display mode beneath the product name.
+</Tip>
+
+## Editing & Deleting Products
+
+### Edit Products
+Click the edit icon on any product card to load it into the form. The form switches to "Update" mode:
+
+```tsx
+const handleProductSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (editingProductId) {
+    onUpdateProduct({ ...productForm, id: editingProductId });
+    setEditingProductId(null);
+  } else {
+    onAddProduct(productForm);
+  }
+  setProductForm(INITIAL_PRODUCT_STATE);
+};
+```
+
+### Delete Products
+Click the trash icon to remove a product from the catalog permanently.
+
+<Warning>
+Deleting a product is permanent and cannot be undone. Ensure products are not actively being displayed before deletion.
+</Warning>
+
+## Category & Color Management
+
+### Product Categories
+Organize products by category for easier searching and filtering in the Dashboard:
+
+```tsx
+const filteredProducts = products.filter(p => 
+  p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  p.category.toLowerCase().includes(searchTerm.toLowerCase())
+);
+```
+
+### Theme Colors
+Set a primary color for each product to customize the display theme:
+
+```typescript
+primaryColor: '#4f46e5'  // Indigo by default
+```
+
+This color affects:
+- Background gradients in display mode
+- Promotion badge colors
+- Price accent colors
+- Ticker text highlights
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="High-Quality Images" icon="image">
+    Use clear, high-resolution images with good lighting. Recommended minimum: 800x800px.
+  </Card>
+  
+  <Card title="Concise Names" icon="text">
+    Keep product names short and recognizable for better display readability.
+  </Card>
+  
+  <Card title="Strategic Promotions" icon="badge-percent">
+    Use daily/weekly promotions sparingly to maintain their impact and urgency.
+  </Card>
+  
+  <Card title="Compelling Slogans" icon="sparkles">
+    Leverage AI-generated slogans or write custom ones that highlight value propositions.
+  </Card>
+</CardGroup>

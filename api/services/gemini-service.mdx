@@ -1,0 +1,208 @@
+---
+title: "Gemini Service"
+description: "AI-powered content generation functions using Google Gemini API"
+---
+
+## Overview
+
+The Gemini Service provides AI-powered content generation capabilities for PromoMaster Pro, including slogan generation, color suggestions, and product image generation using Google's Gemini API.
+
+## Configuration
+
+The service requires a Google Gemini API key configured via environment variables:
+
+```typescript
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+```
+
+<Warning>
+Ensure the `API_KEY` environment variable is set with a valid Google Gemini API key before using these functions.
+</Warning>
+
+## Functions
+
+### generateSlogan
+
+Generates a marketing slogan for a product using AI.
+
+```typescript
+export const generateSlogan = async (
+  productName: string,
+  description: string
+): Promise<string>
+```
+
+#### Parameters
+
+<ParamField path="productName" type="string" required>
+  Name of the product to generate a slogan for
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Detailed description of the product to inform the slogan generation
+</ParamField>
+
+#### Returns
+
+<ResponseField name="slogan" type="string">
+  A short (maximum 5 words), impactful marketing slogan. Returns a default fallback slogan if generation fails.
+</ResponseField>
+
+#### Example
+
+```typescript
+const slogan = await generateSlogan(
+  'Premium Coffee Beans',
+  'Arabica coffee beans from Colombia, medium roast'
+);
+// Returns: "¡Café de calidad premium!"
+```
+
+#### Error Handling
+
+If the AI generation fails, the function returns a default fallback:
+- Default: `"¡Calidad garantizada!"`
+- On success with empty response: `"¡La mejor oferta para vos!"`
+
+---
+
+### suggestProductColor
+
+Suggests a vibrant hex color code for product advertisements, optionally analyzing a product image.
+
+```typescript
+export const suggestProductColor = async (
+  productName: string,
+  imageData?: string
+): Promise<string>
+```
+
+#### Parameters
+
+<ParamField path="productName" type="string" required>
+  Name of the product to suggest a color for
+</ParamField>
+
+<ParamField path="imageData" type="string">
+  Optional base64-encoded image data URI (e.g., `data:image/jpeg;base64,...`). If provided, the AI will analyze the image to suggest a complementary color.
+</ParamField>
+
+#### Returns
+
+<ResponseField name="color" type="string">
+  A hex color code (e.g., `#FF5733`). Returns `#4f46e5` (indigo) as fallback if generation fails.
+</ResponseField>
+
+#### Example
+
+```typescript
+// Without image
+const color1 = await suggestProductColor('Fresh Oranges');
+// Returns: "#FF8C00" (orange tone)
+
+// With image
+const color2 = await suggestProductColor(
+  'Premium Coffee',
+  'data:image/jpeg;base64,/9j/4AAQSkZJRg...'
+);
+// Returns: "#8B4513" (brown tone matching coffee)
+```
+
+#### Image Processing
+
+When `imageData` is provided:
+1. The function extracts the MIME type and base64 data
+2. Sends the image to Gemini for analysis
+3. Receives a color suggestion based on the product's visual aesthetics
+
+---
+
+### generateProductImage
+
+Generates a professional product image using AI image generation.
+
+```typescript
+export const generateProductImage = async (
+  productName: string
+): Promise<string | null>
+```
+
+#### Parameters
+
+<ParamField path="productName" type="string" required>
+  Name of the product to generate an image for
+</ParamField>
+
+#### Returns
+
+<ResponseField name="imageData" type="string | null">
+  A base64-encoded data URI of the generated image (e.g., `data:image/png;base64,...`), or `null` if generation fails.
+</ResponseField>
+
+#### Example
+
+```typescript
+const imageUrl = await generateProductImage('Fresh Strawberries');
+if (imageUrl) {
+  // Use the generated image
+  productForm.imageUrl = imageUrl;
+}
+```
+
+#### Generation Details
+
+- **Model**: `gemini-2.5-flash-image`
+- **Aspect Ratio**: 1:1 (square)
+- **Style**: Professional studio photography with clean background, cinematic lighting, 4K resolution, hyper-realistic
+- **Format**: Returns image as inline data in base64 format
+
+#### Prompt Template
+
+```typescript
+const prompt = `A professional, high-quality commercial studio photography of ${productName}. Clean background, cinematic lighting, 4k resolution, hyper-realistic, professional product placement.`;
+```
+
+## Models Used
+
+| Function | Model | Purpose |
+|----------|-------|----------|
+| `generateSlogan` | `gemini-3-flash-preview` | Text generation |
+| `suggestProductColor` | `gemini-3-flash-preview` | Color analysis and suggestion |
+| `generateProductImage` | `gemini-2.5-flash-image` | Image generation |
+
+## Error Handling
+
+All functions implement graceful error handling:
+
+```typescript
+try {
+  // AI operation
+} catch (error) {
+  console.error("Error message", error);
+  return fallbackValue;
+}
+```
+
+- Errors are logged to the console
+- Functions never throw exceptions
+- Sensible fallback values are always returned
+
+## Best Practices
+
+<Tip>
+**Performance Optimization**
+- Cache generated slogans and colors to avoid redundant API calls
+- Generate images during off-peak hours if possible
+- Consider showing loading states for image generation (15-30 seconds)
+</Tip>
+
+<Warning>
+**API Limits**
+- Be aware of Google Gemini API rate limits
+- Implement request throttling for bulk operations
+- Monitor API usage and costs
+</Warning>
+
+## Related Components
+
+- [Management Component](/api/components/management) - Uses these functions for product creation and editing
