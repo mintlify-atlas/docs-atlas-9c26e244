@@ -1,0 +1,104 @@
+{
+  "projectType": "saas",
+  "projectName": "PromoMaster Pro",
+  "projectDescription": "Professional advertising display platform for creating and managing personalized promotional content for retail stores.",
+  "theme": "almond",
+  "primaryColor": "#4f46e5",
+  "lightColor": "#818cf8",
+  "darkColor": "#3730a3",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/product-management",
+              "features/announcement-creation",
+              "features/store-configuration",
+              "features/display-mode",
+              "features/playlist-builder"
+            ]
+          },
+          {
+            "group": "AI Integration",
+            "pages": [
+              "ai/setup",
+              "ai/slogan-generation",
+              "ai/image-generation"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/creating-products",
+              "guides/managing-stores",
+              "guides/building-sequences",
+              "guides/customizing-displays"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Types",
+            "pages": [
+              "api/types/store",
+              "api/types/product",
+              "api/types/announcement",
+              "api/types/display-item"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "api/services/gemini-service"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "api/components/dashboard",
+              "api/components/management",
+              "api/components/ad-display"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Product catalog management with pricing and promotions",
+    "Custom announcement creation with live preview",
+    "AI-powered slogan and image generation",
+    "Multi-store support with location tracking",
+    "Interactive display mode with animations",
+    "Playlist/sequence builder for ad rotation",
+    "Real-time visual customization",
+    "Local storage persistence"
+  ],
+  "publicApiSurface": [
+    "generateSlogan(productName, description)",
+    "generateProductImage(productName)",
+    "suggestProductColor(productName, imageData)",
+    "Store interface",
+    "Product interface",
+    "Announcement interface",
+    "DisplayItem interface",
+    "AppState interface",
+    "Dashboard component",
+    "Management component",
+    "AdDisplay component"
+  ]
+}
